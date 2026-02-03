@@ -14,7 +14,86 @@ export type Database = {
   }
   public: {
     Tables: {
-      [_ in never]: never
+      projects: {
+        Row: {
+          category: Database["public"]["Enums"]["template_category"]
+          created_at: string
+          data: Json
+          id: string
+          name: string
+          slug: string | null
+          status: Database["public"]["Enums"]["project_status"]
+          template_id: string
+          updated_at: string
+          user_id: string
+        }
+        Insert: {
+          category: Database["public"]["Enums"]["template_category"]
+          created_at?: string
+          data?: Json
+          id?: string
+          name: string
+          slug?: string | null
+          status?: Database["public"]["Enums"]["project_status"]
+          template_id: string
+          updated_at?: string
+          user_id: string
+        }
+        Update: {
+          category?: Database["public"]["Enums"]["template_category"]
+          created_at?: string
+          data?: Json
+          id?: string
+          name?: string
+          slug?: string | null
+          status?: Database["public"]["Enums"]["project_status"]
+          template_id?: string
+          updated_at?: string
+          user_id?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "projects_template_id_fkey"
+            columns: ["template_id"]
+            isOneToOne: false
+            referencedRelation: "templates"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      templates: {
+        Row: {
+          category: Database["public"]["Enums"]["template_category"]
+          created_at: string
+          default_data: Json
+          description: string | null
+          id: string
+          name: string
+          schema: Json
+          thumbnail_url: string | null
+        }
+        Insert: {
+          category: Database["public"]["Enums"]["template_category"]
+          created_at?: string
+          default_data: Json
+          description?: string | null
+          id?: string
+          name: string
+          schema: Json
+          thumbnail_url?: string | null
+        }
+        Update: {
+          category?: Database["public"]["Enums"]["template_category"]
+          created_at?: string
+          default_data?: Json
+          description?: string | null
+          id?: string
+          name?: string
+          schema?: Json
+          thumbnail_url?: string | null
+        }
+        Relationships: []
+      }
     }
     Views: {
       [_ in never]: never
@@ -23,7 +102,8 @@ export type Database = {
       [_ in never]: never
     }
     Enums: {
-      [_ in never]: never
+      project_status: "draft" | "published"
+      template_category: "linktree" | "gallery" | "letter"
     }
     CompositeTypes: {
       [_ in never]: never
@@ -150,6 +230,9 @@ export type CompositeTypes<
 
 export const Constants = {
   public: {
-    Enums: {},
+    Enums: {
+      project_status: ["draft", "published"],
+      template_category: ["linktree", "gallery", "letter"],
+    },
   },
 } as const
