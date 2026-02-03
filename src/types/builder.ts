@@ -1,0 +1,127 @@
+export type TemplateCategory = 'linktree' | 'gallery' | 'letter';
+export type ProjectStatus = 'draft' | 'published';
+
+export interface Template {
+  id: string;
+  name: string;
+  category: TemplateCategory;
+  description: string | null;
+  thumbnail_url: string | null;
+  schema: TemplateSchema;
+  default_data: Record<string, unknown>;
+  created_at: string;
+}
+
+export interface TemplateSchema {
+  sections: TemplateSection[];
+}
+
+export interface TemplateSection {
+  type: string;
+  fields: TemplateField[];
+}
+
+export interface TemplateField {
+  name: string;
+  type: 'text' | 'textarea' | 'richtext' | 'image' | 'url' | 'color' | 'array';
+  label: string;
+  itemFields?: TemplateField[];
+}
+
+export interface Project {
+  id: string;
+  user_id: string;
+  template_id: string;
+  category: TemplateCategory;
+  name: string;
+  data: Record<string, unknown>;
+  slug: string | null;
+  status: ProjectStatus;
+  created_at: string;
+  updated_at: string;
+  template?: Template;
+}
+
+export interface LinkItem {
+  title: string;
+  url: string;
+}
+
+export interface PhotoItem {
+  url: string;
+  caption: string;
+}
+
+export interface LinktreeData {
+  profile: {
+    avatar: string;
+    name: string;
+    bio: string;
+  };
+  links: LinkItem[];
+  theme: {
+    background: string;
+    textColor: string;
+    buttonColor: string;
+    buttonTextColor: string;
+  };
+}
+
+export interface GalleryData {
+  header: {
+    title: string;
+    description: string;
+  };
+  photos: PhotoItem[];
+  theme: {
+    background: string;
+    textColor: string;
+    accentColor: string;
+  };
+}
+
+export interface LetterData {
+  letter?: {
+    title: string;
+    date: string;
+    greeting: string;
+    body: string;
+    closing: string;
+    signature: string;
+  };
+  document?: {
+    title: string;
+    subtitle: string;
+    content: string;
+    author: string;
+  };
+  theme: {
+    background: string;
+    textColor: string;
+    accentColor: string;
+    fontFamily?: string;
+  };
+}
+
+export type ProjectData = LinktreeData | GalleryData | LetterData;
+
+export const CATEGORIES: { id: TemplateCategory; name: string; description: string; icon: string }[] = [
+  {
+    id: 'linktree',
+    name: 'Link Page',
+    description: 'Share all your links in one place',
+    icon: '🔗',
+  },
+  {
+    id: 'gallery',
+    name: 'Photo Gallery',
+    description: 'Showcase your photos beautifully',
+    icon: '🖼️',
+  },
+  {
+    id: 'letter',
+    name: 'Letter / Document',
+    description: 'Share a letter or document',
+    icon: '📝',
+  },
+];
