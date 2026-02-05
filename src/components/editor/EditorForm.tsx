@@ -7,6 +7,7 @@ import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Plus, Trash2, GripVertical, AlertCircle } from 'lucide-react';
 import { cn } from '@/lib/utils';
+ import { ThemeControls } from './ThemeControls';
 
 interface EditorFormProps {
   template: Template;
@@ -256,84 +257,12 @@ function LinktreeEditor({
         </CardContent>
       </Card>
 
-      {/* Theme Section */}
-      <Card>
-        <CardHeader className="pb-3">
-          <CardTitle className="text-sm">Theme</CardTitle>
-        </CardHeader>
-        <CardContent className="space-y-4">
-          <div className="grid grid-cols-2 gap-4">
-            <div className="space-y-2">
-              <Label>Background</Label>
-              <div className="flex gap-2">
-                <Input
-                  type="color"
-                  value={data.theme?.background?.startsWith('#') ? data.theme.background : '#ffffff'}
-                  onChange={(e) => updateField('theme.background', e.target.value)}
-                  className="h-9 w-12 cursor-pointer p-1"
-                />
-                <Input
-                  value={data.theme?.background || ''}
-                  onChange={(e) => updateField('theme.background', e.target.value)}
-                  placeholder="#ffffff"
-                  className="flex-1"
-                />
-              </div>
-            </div>
-            <div className="space-y-2">
-              <Label>Text Color</Label>
-              <div className="flex gap-2">
-                <Input
-                  type="color"
-                  value={data.theme?.textColor || '#1a1a1a'}
-                  onChange={(e) => updateField('theme.textColor', e.target.value)}
-                  className="h-9 w-12 cursor-pointer p-1"
-                />
-                <Input
-                  value={data.theme?.textColor || ''}
-                  onChange={(e) => updateField('theme.textColor', e.target.value)}
-                  placeholder="#1a1a1a"
-                  className="flex-1"
-                />
-              </div>
-            </div>
-            <div className="space-y-2">
-              <Label>Button Color</Label>
-              <div className="flex gap-2">
-                <Input
-                  type="color"
-                  value={data.theme?.buttonColor?.startsWith('#') ? data.theme.buttonColor : '#1a1a1a'}
-                  onChange={(e) => updateField('theme.buttonColor', e.target.value)}
-                  className="h-9 w-12 cursor-pointer p-1"
-                />
-                <Input
-                  value={data.theme?.buttonColor || ''}
-                  onChange={(e) => updateField('theme.buttonColor', e.target.value)}
-                  placeholder="#1a1a1a"
-                  className="flex-1"
-                />
-              </div>
-            </div>
-            <div className="space-y-2">
-              <Label>Button Text</Label>
-              <div className="flex gap-2">
-                <Input
-                  type="color"
-                  value={data.theme?.buttonTextColor || '#ffffff'}
-                  onChange={(e) => updateField('theme.buttonTextColor', e.target.value)}
-                  className="h-9 w-12 cursor-pointer p-1"
-                />
-                <Input
-                  value={data.theme?.buttonTextColor || ''}
-                  onChange={(e) => updateField('theme.buttonTextColor', e.target.value)}
-                  placeholder="#ffffff"
-                  className="flex-1"
-                />
-              </div>
-            </div>
-          </div>
-        </CardContent>
-      </Card>
+      {/* Theme Controls */}
+      <ThemeControls
+        theme={data.theme || {}}
+        updateField={updateField}
+        category="linktree"
+      />
     </div>
   );
 }
@@ -444,48 +373,12 @@ function GalleryEditor({
         </CardContent>
       </Card>
 
-      {/* Theme Section */}
-      <Card>
-        <CardHeader className="pb-3">
-          <CardTitle className="text-sm">Theme</CardTitle>
-        </CardHeader>
-        <CardContent className="space-y-4">
-          <div className="grid grid-cols-2 gap-4">
-            <div className="space-y-2">
-              <Label>Background</Label>
-              <div className="flex gap-2">
-                <Input
-                  type="color"
-                  value={data.theme?.background || '#f8f9fa'}
-                  onChange={(e) => updateField('theme.background', e.target.value)}
-                  className="h-9 w-12 cursor-pointer p-1"
-                />
-                <Input
-                  value={data.theme?.background || ''}
-                  onChange={(e) => updateField('theme.background', e.target.value)}
-                  className="flex-1"
-                />
-              </div>
-            </div>
-            <div className="space-y-2">
-              <Label>Text Color</Label>
-              <div className="flex gap-2">
-                <Input
-                  type="color"
-                  value={data.theme?.textColor || '#1a1a1a'}
-                  onChange={(e) => updateField('theme.textColor', e.target.value)}
-                  className="h-9 w-12 cursor-pointer p-1"
-                />
-                <Input
-                  value={data.theme?.textColor || ''}
-                  onChange={(e) => updateField('theme.textColor', e.target.value)}
-                  className="flex-1"
-                />
-              </div>
-            </div>
-          </div>
-        </CardContent>
-      </Card>
+      {/* Theme Controls */}
+      <ThemeControls
+        theme={data.theme || {}}
+        updateField={updateField}
+        category="gallery"
+      />
     </div>
   );
 }
@@ -495,11 +388,9 @@ interface LetterEditorProps {
   updateField: (path: string, value: string) => void;
 }
 
-function LetterEditor({ data, updateField }: LetterEditorProps) {
-  const isLetter = !!data.letter;
-  const isDocument = !!data.document;
 
-  if (isLetter) {
+function LetterEditor({ data, updateField }: LetterEditorProps) {
+  if (data.letter) {
     return (
       <div className="space-y-6">
         <Card>
@@ -560,53 +451,17 @@ function LetterEditor({ data, updateField }: LetterEditorProps) {
           </CardContent>
         </Card>
 
-        {/* Theme Section */}
-        <Card>
-          <CardHeader className="pb-3">
-            <CardTitle className="text-sm">Theme</CardTitle>
-          </CardHeader>
-          <CardContent className="space-y-4">
-            <div className="grid grid-cols-2 gap-4">
-              <div className="space-y-2">
-                <Label>Background</Label>
-                <div className="flex gap-2">
-                  <Input
-                    type="color"
-                    value={data.theme?.background || '#faf7f2'}
-                    onChange={(e) => updateField('theme.background', e.target.value)}
-                    className="h-9 w-12 cursor-pointer p-1"
-                  />
-                  <Input
-                    value={data.theme?.background || ''}
-                    onChange={(e) => updateField('theme.background', e.target.value)}
-                    className="flex-1"
-                  />
-                </div>
-              </div>
-              <div className="space-y-2">
-                <Label>Text Color</Label>
-                <div className="flex gap-2">
-                  <Input
-                    type="color"
-                    value={data.theme?.textColor || '#2d2d2d'}
-                    onChange={(e) => updateField('theme.textColor', e.target.value)}
-                    className="h-9 w-12 cursor-pointer p-1"
-                  />
-                  <Input
-                    value={data.theme?.textColor || ''}
-                    onChange={(e) => updateField('theme.textColor', e.target.value)}
-                    className="flex-1"
-                  />
-                </div>
-              </div>
-            </div>
-          </CardContent>
-        </Card>
+        {/* Theme Controls */}
+        <ThemeControls
+          theme={data.theme || {}}
+          updateField={updateField}
+          category="letter"
+        />
       </div>
     );
   }
 
-  if (isDocument) {
+  if (data.document) {
     return (
       <div className="space-y-6">
         <Card>
@@ -651,48 +506,12 @@ function LetterEditor({ data, updateField }: LetterEditorProps) {
           </CardContent>
         </Card>
 
-        {/* Theme Section */}
-        <Card>
-          <CardHeader className="pb-3">
-            <CardTitle className="text-sm">Theme</CardTitle>
-          </CardHeader>
-          <CardContent className="space-y-4">
-            <div className="grid grid-cols-2 gap-4">
-              <div className="space-y-2">
-                <Label>Background</Label>
-                <div className="flex gap-2">
-                  <Input
-                    type="color"
-                    value={data.theme?.background || '#ffffff'}
-                    onChange={(e) => updateField('theme.background', e.target.value)}
-                    className="h-9 w-12 cursor-pointer p-1"
-                  />
-                  <Input
-                    value={data.theme?.background || ''}
-                    onChange={(e) => updateField('theme.background', e.target.value)}
-                    className="flex-1"
-                  />
-                </div>
-              </div>
-              <div className="space-y-2">
-                <Label>Text Color</Label>
-                <div className="flex gap-2">
-                  <Input
-                    type="color"
-                    value={data.theme?.textColor || '#1a1a1a'}
-                    onChange={(e) => updateField('theme.textColor', e.target.value)}
-                    className="h-9 w-12 cursor-pointer p-1"
-                  />
-                  <Input
-                    value={data.theme?.textColor || ''}
-                    onChange={(e) => updateField('theme.textColor', e.target.value)}
-                    className="flex-1"
-                  />
-                </div>
-              </div>
-            </div>
-          </CardContent>
-        </Card>
+        {/* Theme Controls */}
+        <ThemeControls
+          theme={data.theme || {}}
+          updateField={updateField}
+          category="letter"
+        />
       </div>
     );
   }
