@@ -28,6 +28,19 @@ export interface TemplateField {
   itemFields?: TemplateField[];
 }
 
+export interface ThemeSettings {
+  background?: string;
+  textColor?: string;
+  accentColor?: string;
+  buttonColor?: string;
+  buttonTextColor?: string;
+  glowColor?: string;
+  borderRadius?: number;
+  shadowIntensity?: number;
+  animationSpeed?: number;
+  fontFamily?: string;
+}
+
 export interface Project {
   id: string;
   user_id: string;
@@ -59,12 +72,7 @@ export interface LinktreeData {
     bio: string;
   };
   links: LinkItem[];
-  theme: {
-    background: string;
-    textColor: string;
-    buttonColor: string;
-    buttonTextColor: string;
-  };
+  theme: ThemeSettings;
 }
 
 export interface GalleryData {
@@ -73,11 +81,7 @@ export interface GalleryData {
     description: string;
   };
   photos: PhotoItem[];
-  theme: {
-    background: string;
-    textColor: string;
-    accentColor: string;
-  };
+  theme: ThemeSettings;
 }
 
 export interface LetterData {
@@ -95,12 +99,7 @@ export interface LetterData {
     content: string;
     author: string;
   };
-  theme: {
-    background: string;
-    textColor: string;
-    accentColor: string;
-    fontFamily?: string;
-  };
+  theme: ThemeSettings;
 }
 
 export type ProjectData = LinktreeData | GalleryData | LetterData;
