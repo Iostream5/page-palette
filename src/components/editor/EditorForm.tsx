@@ -1,14 +1,16 @@
 import { useState } from 'react';
-import { Template, LinktreeData, GalleryData, LetterData } from '@/types/builder';
+import { Template, LinktreeData, GalleryData, LetterData, BrandKit, AnimationSettings } from '@/types/builder';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
 import { Textarea } from '@/components/ui/textarea';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
-import { Plus, Trash2, GripVertical, AlertCircle } from 'lucide-react';
+import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
+import { Plus, Trash2, AlertCircle, Palette, Wand2, Settings2 } from 'lucide-react';
 import { cn } from '@/lib/utils';
- import { ThemeControls } from './ThemeControls';
-
+import { ThemeControls } from './ThemeControls';
+import { BrandKitControls } from './BrandKitControls';
+import { AnimationSelector, AnimationSpeedControl } from './AnimationSelector';
 interface EditorFormProps {
   template: Template;
   data: Record<string, unknown>;
@@ -257,12 +259,61 @@ function LinktreeEditor({
         </CardContent>
       </Card>
 
-      {/* Theme Controls */}
-      <ThemeControls
-        theme={data.theme || {}}
-        updateField={updateField}
-        category="linktree"
-      />
+      {/* Customization Tabs */}
+      <Tabs defaultValue="theme" className="w-full">
+        <TabsList className="w-full grid grid-cols-3">
+          <TabsTrigger value="theme" className="text-xs gap-1">
+            <Palette className="h-3 w-3" />
+            Theme
+          </TabsTrigger>
+          <TabsTrigger value="animations" className="text-xs gap-1">
+            <Wand2 className="h-3 w-3" />
+            Animate
+          </TabsTrigger>
+          <TabsTrigger value="brand" className="text-xs gap-1">
+            <Settings2 className="h-3 w-3" />
+            Brand
+          </TabsTrigger>
+        </TabsList>
+        <TabsContent value="theme" className="mt-4">
+          <ThemeControls
+            theme={data.theme || {}}
+            updateField={updateField}
+            category="linktree"
+          />
+        </TabsContent>
+        <TabsContent value="animations" className="mt-4 space-y-4">
+          <Card>
+            <CardHeader className="pb-3">
+              <CardTitle className="text-sm">Animation Effects</CardTitle>
+            </CardHeader>
+            <CardContent className="space-y-4">
+              <AnimationSelector
+                value={(data as unknown as Record<string, unknown>).animations as string[] || []}
+                onChange={(animations) => updateField('animations', animations as unknown as string)}
+                maxSelections={3}
+              />
+              <AnimationSpeedControl
+                value={data.theme?.animationSpeed || 1}
+                onChange={(speed) => updateField('theme.animationSpeed', speed.toString())}
+              />
+            </CardContent>
+          </Card>
+        </TabsContent>
+        <TabsContent value="brand" className="mt-4">
+          <Card>
+            <CardHeader className="pb-3">
+              <CardTitle className="text-sm">Brand Kit</CardTitle>
+            </CardHeader>
+            <CardContent>
+              <BrandKitControls
+                brandKit={(data as unknown as Record<string, unknown>).brandKit as BrandKit || {}}
+                onChange={(brandKit) => updateField('brandKit', brandKit as unknown as string)}
+              />
+            </CardContent>
+          </Card>
+        </TabsContent>
+      </Tabs>
     </div>
   );
 }
