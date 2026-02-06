@@ -39,6 +39,27 @@ export interface ThemeSettings {
   shadowIntensity?: number;
   animationSpeed?: number;
   fontFamily?: string;
+  fontHeading?: string;
+}
+
+export interface BrandKit {
+  logo?: string;
+  favicon?: string;
+  primaryColor?: string;
+  secondaryColor?: string;
+  accentColor?: string;
+  fontFamily?: string;
+  fontHeading?: string;
+  customCSS?: string;
+}
+
+export interface AnimationSettings {
+  entranceAnimation?: string;
+  hoverAnimation?: string;
+  scrollAnimation?: string;
+  animationSpeed?: number;
+  enableParallax?: boolean;
+  enableMicroInteractions?: boolean;
 }
 
 export interface Project {
