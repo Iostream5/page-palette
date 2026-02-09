@@ -103,7 +103,7 @@ export type Database = {
     }
     Enums: {
       project_status: "draft" | "published"
-      template_category: "linktree" | "gallery" | "letter"
+      template_category: "linktree" | "gallery" | "letter" | "custom"
     }
     CompositeTypes: {
       [_ in never]: never
@@ -232,7 +232,7 @@ export const Constants = {
   public: {
     Enums: {
       project_status: ["draft", "published"],
-      template_category: ["linktree", "gallery", "letter"],
+      template_category: ["linktree", "gallery", "letter", "custom"],
     },
   },
 } as const
