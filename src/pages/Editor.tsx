@@ -17,6 +17,7 @@ import {
   Check,
   LayoutGrid,
   Settings,
+  Download,
 } from 'lucide-react';
 import {
   Dialog,
@@ -31,6 +32,7 @@ import { PreviewRenderer } from '@/components/preview/PreviewRenderer';
 import { ComponentLibrary } from '@/components/editor/ComponentLibrary';
 import { PageCanvas } from '@/components/editor/PageCanvas';
 import { ComponentPropsEditor } from '@/components/editor/ComponentPropsEditor';
+import { ExportDialog } from '@/components/editor/ExportDialog';
 import { PageComponent } from '@/types/page-components';
 import { cn } from '@/lib/utils';
 
@@ -245,6 +247,10 @@ export default function Editor() {
           {hasChanges && (
             <span className="text-xs text-muted-foreground">Unsaved changes</span>
           )}
+          
+          {/* Export Button */}
+          <ExportDialog components={pageComponents} projectName={projectName} />
+          
           <Button variant="outline" size="sm" onClick={handleSave} disabled={isSaving}>
             {isSaving ? (
               <Loader2 className="mr-2 h-4 w-4 animate-spin" />
