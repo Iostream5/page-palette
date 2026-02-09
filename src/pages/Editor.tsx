@@ -54,6 +54,9 @@ export default function Editor() {
   const [pageComponents, setPageComponents] = useState<PageComponent[]>([]);
   const [selectedComponentId, setSelectedComponentId] = useState<string | null>(null);
   const [editorTab, setEditorTab] = useState<'content' | 'components'>('content');
+  
+  // Determine if this is a custom page builder project
+  const isCustomProject = project?.category === 'custom';
 
   useEffect(() => {
     if (project) {
@@ -64,6 +67,10 @@ export default function Editor() {
       const savedComponents = (project.data as Record<string, unknown>).pageComponents as PageComponent[] | undefined;
       if (savedComponents) {
         setPageComponents(savedComponents);
+      }
+      // Set default tab based on project type
+      if (project.category === 'custom') {
+        setEditorTab('components');
       }
     }
   }, [project]);
@@ -339,39 +346,58 @@ export default function Editor() {
       <div className="flex flex-1 overflow-hidden">
         {/* Left Panel - Editor/Component Library */}
         <div className="w-96 flex-shrink-0 border-r border-border overflow-hidden flex flex-col">
-          <Tabs value={editorTab} onValueChange={(v) => setEditorTab(v as 'content' | 'components')} className="flex-1 flex flex-col">
-            <div className="border-b border-border p-2">
-              <TabsList className="w-full grid grid-cols-2">
-                <TabsTrigger value="content" className="gap-1.5 text-xs">
-                  <Settings className="h-3.5 w-3.5" />
-                  Content
-                </TabsTrigger>
-                <TabsTrigger value="components" className="gap-1.5 text-xs">
-                  <LayoutGrid className="h-3.5 w-3.5" />
-                  Components
-                </TabsTrigger>
-              </TabsList>
+          {isCustomProject ? (
+            // Custom project - only show component library
+            <div className="flex-1 flex flex-col overflow-hidden">
+              <div className="border-b border-border p-3">
+                <div className="flex items-center gap-2 text-sm font-medium">
+                  <LayoutGrid className="h-4 w-4" />
+                  Component Library
+                </div>
+              </div>
+              <div className="flex-1 overflow-hidden">
+                <ComponentLibrary
+                  onAddComponent={handleAddComponent}
+                  existingComponentCount={pageComponents.length}
+                />
+              </div>
             </div>
-            
-            <TabsContent value="content" className="flex-1 overflow-auto m-0 p-4">
-              <EditorForm
-                template={project.template!}
-                data={data}
-                onChange={handleDataChange}
-              />
-            </TabsContent>
-            
-            <TabsContent value="components" className="flex-1 overflow-hidden m-0">
-              <ComponentLibrary
-                onAddComponent={handleAddComponent}
-                existingComponentCount={pageComponents.length}
-              />
-            </TabsContent>
-          </Tabs>
+          ) : (
+            // Template project - show tabs for content and components
+            <Tabs value={editorTab} onValueChange={(v) => setEditorTab(v as 'content' | 'components')} className="flex-1 flex flex-col">
+              <div className="border-b border-border p-2">
+                <TabsList className="w-full grid grid-cols-2">
+                  <TabsTrigger value="content" className="gap-1.5 text-xs">
+                    <Settings className="h-3.5 w-3.5" />
+                    Content
+                  </TabsTrigger>
+                  <TabsTrigger value="components" className="gap-1.5 text-xs">
+                    <LayoutGrid className="h-3.5 w-3.5" />
+                    Components
+                  </TabsTrigger>
+                </TabsList>
+              </div>
+              
+              <TabsContent value="content" className="flex-1 overflow-auto m-0 p-4">
+                <EditorForm
+                  template={project.template!}
+                  data={data}
+                  onChange={handleDataChange}
+                />
+              </TabsContent>
+              
+              <TabsContent value="components" className="flex-1 overflow-hidden m-0">
+                <ComponentLibrary
+                  onAddComponent={handleAddComponent}
+                  existingComponentCount={pageComponents.length}
+                />
+              </TabsContent>
+            </Tabs>
+          )}
         </div>
 
-        {/* Center Panel - Page Canvas */}
-        {editorTab === 'components' && (
+        {/* Center Panel - Page Canvas (always visible for custom, or when components tab is active) */}
+        {(isCustomProject || editorTab === 'components') && (
           <div className="flex-1 overflow-auto bg-muted/30 border-r border-border">
             <div className="p-4">
               <div className="mb-2 flex items-center gap-2 text-sm text-muted-foreground">
@@ -390,12 +416,12 @@ export default function Editor() {
           </div>
         )}
 
-        {/* Right Panel - Preview or Props Editor */}
+        {/* Right Panel - Props Editor (for components) or Preview (for template content) */}
         <div className={cn(
           'flex-1 preview-panel',
-          editorTab === 'components' && selectedComponent && 'w-80 flex-shrink-0 flex-grow-0'
+          (isCustomProject || editorTab === 'components') && selectedComponent && 'w-80 flex-shrink-0 flex-grow-0'
         )}>
-          {editorTab === 'components' && selectedComponent ? (
+          {(isCustomProject || editorTab === 'components') && selectedComponent ? (
             <ComponentPropsEditor
               component={selectedComponent}
               onUpdate={handleUpdateComponent}
@@ -403,7 +429,7 @@ export default function Editor() {
               onDuplicate={() => handleDuplicateComponent(selectedComponent.id)}
               onClose={() => setSelectedComponentId(null)}
             />
-          ) : (
+          ) : !isCustomProject && editorTab === 'content' ? (
             <div className="h-full w-full max-w-2xl">
               <div className="mb-2 flex items-center gap-2 text-sm text-muted-foreground">
                 <Eye className="h-4 w-4" />
@@ -413,7 +439,7 @@ export default function Editor() {
                 <PreviewRenderer template={project.template!} data={data} />
               </div>
             </div>
-          )}
+          ) : null}
         </div>
       </div>
     </div>

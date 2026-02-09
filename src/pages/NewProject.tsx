@@ -23,9 +23,17 @@ export default function NewProject() {
   const createProject = useCreateProject();
   const navigate = useNavigate();
 
-  const handleCategorySelect = (category: TemplateCategory) => {
+  const handleCategorySelect = async (category: TemplateCategory) => {
     setSelectedCategory(category);
     setSelectedTemplate(null);
+    
+    // For custom category, skip template selection and create project directly
+    if (category === 'custom') {
+      setStep('name');
+      setProjectName('My Custom Page');
+      return;
+    }
+    
     setStep('template');
   };
 
@@ -36,7 +44,41 @@ export default function NewProject() {
   };
 
   const handleCreate = async () => {
-    if (!selectedTemplate || !selectedCategory || !projectName.trim()) return;
+    if (!selectedCategory || !projectName.trim()) return;
+    
+    // For custom category, we need to fetch the custom template
+    if (selectedCategory === 'custom' && !selectedTemplate) {
+      setCreating(true);
+      try {
+        // Fetch the custom template
+        const { data: customTemplates } = await import('@/integrations/supabase/client').then(m => 
+          m.supabase.from('templates').select('*').eq('category', 'custom').limit(1)
+        );
+        
+        if (!customTemplates || customTemplates.length === 0) {
+          toast.error('Custom template not found');
+          setCreating(false);
+          return;
+        }
+        
+        const customTemplate = customTemplates[0];
+        const project = await createProject.mutateAsync({
+          templateId: customTemplate.id,
+          category: selectedCategory,
+          name: projectName.trim(),
+          data: { pageComponents: [] },
+        });
+        toast.success('Project created!');
+        navigate(`/edit/${project.id}`);
+      } catch {
+        toast.error('Failed to create project');
+      } finally {
+        setCreating(false);
+      }
+      return;
+    }
+
+    if (!selectedTemplate) return;
 
     setCreating(true);
     try {
@@ -60,10 +102,26 @@ export default function NewProject() {
       setStep('category');
       setSelectedCategory(null);
     } else if (step === 'name') {
-      setStep('template');
-      setSelectedTemplate(null);
+      // For custom category, go back to category selection
+      if (selectedCategory === 'custom') {
+        setStep('category');
+        setSelectedCategory(null);
+      } else {
+        setStep('template');
+        setSelectedTemplate(null);
+      }
     }
   };
+
+  // Determine which steps to show based on category
+  const getSteps = () => {
+    if (selectedCategory === 'custom') {
+      return ['category', 'name'];
+    }
+    return ['category', 'template', 'name'];
+  };
+  
+  const steps = getSteps();
 
   return (
     <div className="min-h-screen bg-background">
@@ -87,19 +145,19 @@ export default function NewProject() {
       {/* Progress Steps */}
       <div className="border-b border-border bg-card/50">
         <div className="mx-auto flex max-w-4xl items-center gap-2 px-4 py-3">
-          {['category', 'template', 'name'].map((s, i) => (
+          {steps.map((s, i) => (
             <div key={s} className="flex items-center gap-2">
               <div
                 className={cn(
                   'flex h-6 w-6 items-center justify-center rounded-full text-xs font-medium transition-colors',
                   step === s
                     ? 'bg-primary text-primary-foreground'
-                    : ['category', 'template', 'name'].indexOf(step) > i
+                    : steps.indexOf(step) > i
                     ? 'bg-primary/20 text-primary'
                     : 'bg-muted text-muted-foreground'
                 )}
               >
-                {['category', 'template', 'name'].indexOf(step) > i ? (
+                {steps.indexOf(step) > i ? (
                   <Check className="h-3 w-3" />
                 ) : (
                   i + 1
@@ -113,7 +171,7 @@ export default function NewProject() {
               >
                 {s}
               </span>
-              {i < 2 && <ArrowRight className="h-4 w-4 text-muted-foreground/50" />}
+              {i < steps.length - 1 && <ArrowRight className="h-4 w-4 text-muted-foreground/50" />}
             </div>
           ))}
         </div>
@@ -125,7 +183,7 @@ export default function NewProject() {
         {step === 'category' && (
           <div className="animate-fade-in">
             <h2 className="mb-6 text-xl font-semibold">What do you want to create?</h2>
-            <div className="grid gap-4 sm:grid-cols-3">
+            <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-4">
               {CATEGORIES.map((category) => (
                 <div
                   key={category.id}
