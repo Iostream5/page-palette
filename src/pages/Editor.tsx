@@ -4,7 +4,7 @@ import { useProject, useUpdateProject } from '@/hooks/useProjects';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
-import { Textarea } from '@/components/ui/textarea';
+import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import { toast } from 'sonner';
 import {
   ArrowLeft,
@@ -15,6 +15,9 @@ import {
   ExternalLink,
   Copy,
   Check,
+  LayoutGrid,
+  Settings,
+  Download,
 } from 'lucide-react';
 import {
   Dialog,
@@ -26,6 +29,11 @@ import {
 } from '@/components/ui/dialog';
 import { EditorForm } from '@/components/editor/EditorForm';
 import { PreviewRenderer } from '@/components/preview/PreviewRenderer';
+import { ComponentLibrary } from '@/components/editor/ComponentLibrary';
+import { PageCanvas } from '@/components/editor/PageCanvas';
+import { ComponentPropsEditor } from '@/components/editor/ComponentPropsEditor';
+import { ExportDialog } from '@/components/editor/ExportDialog';
+import { PageComponent } from '@/types/page-components';
 import { cn } from '@/lib/utils';
 
 export default function Editor() {
@@ -41,12 +49,29 @@ export default function Editor() {
   const [hasChanges, setHasChanges] = useState(false);
   const [publishDialogOpen, setPublishDialogOpen] = useState(false);
   const [copied, setCopied] = useState(false);
+  
+  // Component Library state
+  const [pageComponents, setPageComponents] = useState<PageComponent[]>([]);
+  const [selectedComponentId, setSelectedComponentId] = useState<string | null>(null);
+  const [editorTab, setEditorTab] = useState<'content' | 'components'>('content');
+  
+  // Determine if this is a custom page builder project
+  const isCustomProject = project?.category === 'custom';
 
   useEffect(() => {
     if (project) {
       setData(project.data);
       setProjectName(project.name);
       setSlug(project.slug || '');
+      // Load saved page components if any
+      const savedComponents = (project.data as Record<string, unknown>).pageComponents as PageComponent[] | undefined;
+      if (savedComponents) {
+        setPageComponents(savedComponents);
+      }
+      // Set default tab based on project type
+      if (project.category === 'custom') {
+        setEditorTab('components');
+      }
     }
   }, [project]);
 
@@ -54,6 +79,57 @@ export default function Editor() {
     setData(newData);
     setHasChanges(true);
   }, []);
+
+  // Handle page components changes
+  const handleComponentsChange = useCallback((components: PageComponent[]) => {
+    setPageComponents(components);
+    setData(prev => ({ ...prev, pageComponents: components }));
+    setHasChanges(true);
+  }, []);
+
+  // Add component from library
+  const handleAddComponent = useCallback((component: PageComponent) => {
+    const updatedComponents = [...pageComponents, component];
+    handleComponentsChange(updatedComponents);
+    setSelectedComponentId(component.id);
+    toast.success(`${component.type} added!`);
+  }, [pageComponents, handleComponentsChange]);
+
+  // Update single component
+  const handleUpdateComponent = useCallback((updated: PageComponent) => {
+    const updatedComponents = pageComponents.map(c => 
+      c.id === updated.id ? updated : c
+    );
+    handleComponentsChange(updatedComponents);
+  }, [pageComponents, handleComponentsChange]);
+
+  // Delete component
+  const handleDeleteComponent = useCallback((id: string) => {
+    const updatedComponents = pageComponents.filter(c => c.id !== id);
+    handleComponentsChange(updatedComponents);
+    if (selectedComponentId === id) {
+      setSelectedComponentId(null);
+    }
+    toast.success('Component deleted');
+  }, [pageComponents, handleComponentsChange, selectedComponentId]);
+
+  // Duplicate component
+  const handleDuplicateComponent = useCallback((id: string) => {
+    const component = pageComponents.find(c => c.id === id);
+    if (!component) return;
+    
+    const duplicated: PageComponent = {
+      ...component,
+      id: `comp_${Date.now()}_${Math.random().toString(36).substring(2, 9)}`,
+      order: pageComponents.length,
+    };
+    handleComponentsChange([...pageComponents, duplicated]);
+    setSelectedComponentId(duplicated.id);
+    toast.success('Component duplicated');
+  }, [pageComponents, handleComponentsChange]);
+
+  // Get selected component
+  const selectedComponent = pageComponents.find(c => c.id === selectedComponentId);
 
   // Autosave with debounce
   useEffect(() => {
@@ -178,6 +254,10 @@ export default function Editor() {
           {hasChanges && (
             <span className="text-xs text-muted-foreground">Unsaved changes</span>
           )}
+          
+          {/* Export Button */}
+          <ExportDialog components={pageComponents} projectName={projectName} />
+          
           <Button variant="outline" size="sm" onClick={handleSave} disabled={isSaving}>
             {isSaving ? (
               <Loader2 className="mr-2 h-4 w-4 animate-spin" />
@@ -264,29 +344,102 @@ export default function Editor() {
 
       {/* Editor Content */}
       <div className="flex flex-1 overflow-hidden">
-        {/* Left Panel - Editor Form */}
-        <div className="w-96 flex-shrink-0 border-r border-border editor-panel">
-          <div className="p-4">
-            <h3 className="mb-4 font-semibold text-foreground">Edit Content</h3>
-            <EditorForm
-              template={project.template!}
-              data={data}
-              onChange={handleDataChange}
-            />
-          </div>
+        {/* Left Panel - Editor/Component Library */}
+        <div className="w-96 flex-shrink-0 border-r border-border overflow-hidden flex flex-col">
+          {isCustomProject ? (
+            // Custom project - only show component library
+            <div className="flex-1 flex flex-col overflow-hidden">
+              <div className="border-b border-border p-3">
+                <div className="flex items-center gap-2 text-sm font-medium">
+                  <LayoutGrid className="h-4 w-4" />
+                  Component Library
+                </div>
+              </div>
+              <div className="flex-1 overflow-hidden">
+                <ComponentLibrary
+                  onAddComponent={handleAddComponent}
+                  existingComponentCount={pageComponents.length}
+                />
+              </div>
+            </div>
+          ) : (
+            // Template project - show tabs for content and components
+            <Tabs value={editorTab} onValueChange={(v) => setEditorTab(v as 'content' | 'components')} className="flex-1 flex flex-col">
+              <div className="border-b border-border p-2">
+                <TabsList className="w-full grid grid-cols-2">
+                  <TabsTrigger value="content" className="gap-1.5 text-xs">
+                    <Settings className="h-3.5 w-3.5" />
+                    Content
+                  </TabsTrigger>
+                  <TabsTrigger value="components" className="gap-1.5 text-xs">
+                    <LayoutGrid className="h-3.5 w-3.5" />
+                    Components
+                  </TabsTrigger>
+                </TabsList>
+              </div>
+              
+              <TabsContent value="content" className="flex-1 overflow-auto m-0 p-4">
+                <EditorForm
+                  template={project.template!}
+                  data={data}
+                  onChange={handleDataChange}
+                />
+              </TabsContent>
+              
+              <TabsContent value="components" className="flex-1 overflow-hidden m-0">
+                <ComponentLibrary
+                  onAddComponent={handleAddComponent}
+                  existingComponentCount={pageComponents.length}
+                />
+              </TabsContent>
+            </Tabs>
+          )}
         </div>
 
-        {/* Right Panel - Preview */}
-        <div className="flex-1 preview-panel">
-          <div className="h-full w-full max-w-2xl">
-            <div className="mb-2 flex items-center gap-2 text-sm text-muted-foreground">
-              <Eye className="h-4 w-4" />
-              Preview
-            </div>
-            <div className="h-[calc(100%-2rem)] overflow-auto rounded-lg border border-border bg-white shadow-lg">
-              <PreviewRenderer template={project.template!} data={data} />
+        {/* Center Panel - Page Canvas (always visible for custom, or when components tab is active) */}
+        {(isCustomProject || editorTab === 'components') && (
+          <div className="flex-1 overflow-auto bg-muted/30 border-r border-border">
+            <div className="p-4">
+              <div className="mb-2 flex items-center gap-2 text-sm text-muted-foreground">
+                <LayoutGrid className="h-4 w-4" />
+                Page Builder
+              </div>
+              <div className="min-h-[calc(100vh-12rem)] rounded-lg border border-border bg-background shadow-sm">
+                <PageCanvas
+                  components={pageComponents}
+                  onComponentsChange={handleComponentsChange}
+                  onSelectComponent={setSelectedComponentId}
+                  selectedComponentId={selectedComponentId}
+                />
+              </div>
             </div>
           </div>
+        )}
+
+        {/* Right Panel - Props Editor (for components) or Preview (for template content) */}
+        <div className={cn(
+          'flex-1 preview-panel',
+          (isCustomProject || editorTab === 'components') && selectedComponent && 'w-80 flex-shrink-0 flex-grow-0'
+        )}>
+          {(isCustomProject || editorTab === 'components') && selectedComponent ? (
+            <ComponentPropsEditor
+              component={selectedComponent}
+              onUpdate={handleUpdateComponent}
+              onDelete={() => handleDeleteComponent(selectedComponent.id)}
+              onDuplicate={() => handleDuplicateComponent(selectedComponent.id)}
+              onClose={() => setSelectedComponentId(null)}
+            />
+          ) : !isCustomProject && editorTab === 'content' ? (
+            <div className="h-full w-full max-w-2xl">
+              <div className="mb-2 flex items-center gap-2 text-sm text-muted-foreground">
+                <Eye className="h-4 w-4" />
+                Preview
+              </div>
+              <div className="h-[calc(100%-2rem)] overflow-auto rounded-lg border border-border bg-white shadow-lg">
+                <PreviewRenderer template={project.template!} data={data} />
+              </div>
+            </div>
+          ) : null}
         </div>
       </div>
     </div>

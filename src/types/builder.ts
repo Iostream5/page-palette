@@ -1,4 +1,4 @@
-export type TemplateCategory = 'linktree' | 'gallery' | 'letter';
+export type TemplateCategory = 'linktree' | 'gallery' | 'letter' | 'custom';
 export type ProjectStatus = 'draft' | 'published';
 
 export interface Template {
@@ -39,6 +39,27 @@ export interface ThemeSettings {
   shadowIntensity?: number;
   animationSpeed?: number;
   fontFamily?: string;
+  fontHeading?: string;
+}
+
+export interface BrandKit {
+  logo?: string;
+  favicon?: string;
+  primaryColor?: string;
+  secondaryColor?: string;
+  accentColor?: string;
+  fontFamily?: string;
+  fontHeading?: string;
+  customCSS?: string;
+}
+
+export interface AnimationSettings {
+  entranceAnimation?: string;
+  hoverAnimation?: string;
+  scrollAnimation?: string;
+  animationSpeed?: number;
+  enableParallax?: boolean;
+  enableMicroInteractions?: boolean;
 }
 
 export interface Project {
@@ -105,6 +126,12 @@ export interface LetterData {
 export type ProjectData = LinktreeData | GalleryData | LetterData;
 
 export const CATEGORIES: { id: TemplateCategory; name: string; description: string; icon: string }[] = [
+  {
+    id: 'custom',
+    name: 'Custom Web',
+    description: 'Build your own page with drag-and-drop components',
+    icon: '🎨',
+  },
   {
     id: 'linktree',
     name: 'Link Page',
