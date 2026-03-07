@@ -20,7 +20,13 @@ export type PageComponentType =
   | 'pricing'
   | 'faq'
   | 'contact-form'
-  | 'newsletter';
+  | 'newsletter'
+  | 'tabs'
+  | 'carousel'
+  | 'logo-cloud'
+  | 'timeline'
+  | 'accordion'
+  | 'alert';
 
 export interface PageComponentBase {
   id: string;
@@ -255,6 +261,77 @@ export interface NewsletterComponent extends PageComponentBase {
   };
 }
 
+export interface TabsComponent extends PageComponentBase {
+  type: 'tabs';
+  props: {
+    items: Array<{
+      label: string;
+      content: string;
+    }>;
+    variant: 'default' | 'outline' | 'pills';
+  };
+}
+
+export interface CarouselComponent extends PageComponentBase {
+  type: 'carousel';
+  props: {
+    slides: Array<{
+      image: string;
+      title?: string;
+      description?: string;
+    }>;
+    autoplay: boolean;
+    showArrows: boolean;
+    showDots: boolean;
+  };
+}
+
+export interface LogoCloudComponent extends PageComponentBase {
+  type: 'logo-cloud';
+  props: {
+    logos: Array<{
+      src: string;
+      alt: string;
+      url?: string;
+    }>;
+    title?: string;
+    layout: 'grid' | 'marquee';
+  };
+}
+
+export interface TimelineComponent extends PageComponentBase {
+  type: 'timeline';
+  props: {
+    items: Array<{
+      date: string;
+      title: string;
+      description: string;
+    }>;
+    layout: 'left' | 'alternate' | 'center';
+  };
+}
+
+export interface AccordionComponent extends PageComponentBase {
+  type: 'accordion';
+  props: {
+    items: Array<{
+      title: string;
+      content: string;
+    }>;
+    variant: 'default' | 'separated' | 'ghost';
+  };
+}
+
+export interface AlertComponent extends PageComponentBase {
+  type: 'alert';
+  props: {
+    title: string;
+    description: string;
+    variant: 'default' | 'info' | 'success' | 'warning' | 'destructive';
+    showIcon: boolean;
+  };
+}
+
 export type PageComponent =
   | HeroComponent
   | HeadingComponent
@@ -275,7 +352,13 @@ export type PageComponent =
   | PricingComponent
   | FAQComponent
   | ContactFormComponent
-  | NewsletterComponent;
+  | NewsletterComponent
+  | TabsComponent
+  | CarouselComponent
+  | LogoCloudComponent
+  | TimelineComponent
+  | AccordionComponent
+  | AlertComponent;
 
 // Component category for organizing the library
 export interface ComponentCategory {

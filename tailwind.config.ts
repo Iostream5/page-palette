@@ -128,6 +128,10 @@ export default {
           "0%": { transform: "scale(0.9)", opacity: "0" },
           "100%": { transform: "scale(1)", opacity: "1" },
         },
+        "marquee": {
+          "0%": { transform: "translateX(0)" },
+          "100%": { transform: "translateX(-50%)" },
+        },
       },
       animation: {
         "accordion-down": "accordion-down 0.2s ease-out",
@@ -143,6 +147,7 @@ export default {
         "slide-in-top": "slide-in-top 0.5s ease-out",
         "fade-in-up": "fade-in-up 0.5s ease-out",
         "fade-in-scale": "fade-in-scale 0.4s ease-out",
+        "marquee": "marquee 30s linear infinite",
       },
       transitionTimingFunction: {
         "bounce-in": "cubic-bezier(0.68, -0.55, 0.265, 1.55)",

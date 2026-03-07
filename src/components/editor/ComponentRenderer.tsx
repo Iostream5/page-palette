@@ -8,6 +8,12 @@ import { Card, CardContent, CardHeader, CardTitle, CardDescription } from '@/com
 import { Input } from '@/components/ui/input';
 import { Textarea } from '@/components/ui/textarea';
 import { Accordion, AccordionContent, AccordionItem, AccordionTrigger } from '@/components/ui/accordion';
+import { Alert, AlertTitle, AlertDescription } from '@/components/ui/alert';
+import { Info, CheckCircle, AlertTriangle, AlertCircle } from 'lucide-react';
+import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
+import useEmblaCarousel from 'embla-carousel-react';
+import { useEffect, useState, useCallback } from 'react';
+import { ChevronLeft, ChevronRight } from 'lucide-react';
 
 interface ComponentRendererProps {
   component: PageComponent;
@@ -126,6 +132,18 @@ function renderComponent(component: PageComponent) {
       return <ContactFormRenderer {...component.props} />;
     case 'video':
       return <VideoRenderer {...component.props} />;
+    case 'tabs':
+      return <TabsRenderer {...component.props} />;
+    case 'carousel':
+      return <CarouselRenderer {...component.props} />;
+    case 'logo-cloud':
+      return <LogoCloudRenderer {...component.props} />;
+    case 'timeline':
+      return <TimelineRenderer {...component.props} />;
+    case 'accordion':
+      return <AccordionRenderer {...component.props} />;
+    case 'alert':
+      return <AlertRenderer {...component.props} />;
     default:
       return <div className="p-4 text-muted-foreground">Unknown component</div>;
   }
@@ -199,6 +217,63 @@ function HeroRenderer(props: {
       </div>
       <div className="absolute inset-0 bg-black/20" />
     </div>
+  );
+}
+
+function AccordionRenderer(props: {
+  items: Array<{ title: string; content: string }>;
+  variant: string;
+}) {
+  return (
+    <Accordion type="single" collapsible className="w-full py-4">
+      {props.items.map((item, i) => (
+        <AccordionItem
+          key={i}
+          value={`item-${i}`}
+          className={cn(
+            props.variant === 'separated' && "border rounded-lg mb-2 px-4",
+            props.variant === 'ghost' && "border-none"
+          )}
+        >
+          <AccordionTrigger className="hover:no-underline font-semibold">
+            {item.title}
+          </AccordionTrigger>
+          <AccordionContent className="text-muted-foreground whitespace-pre-wrap">
+            {item.content}
+          </AccordionContent>
+        </AccordionItem>
+      ))}
+    </Accordion>
+  );
+}
+
+function AlertRenderer(props: {
+  title: string;
+  description: string;
+  variant: string;
+  showIcon: boolean;
+}) {
+  const IconMap = {
+    info: Info,
+    success: CheckCircle,
+    warning: AlertTriangle,
+    destructive: AlertCircle,
+    default: Info,
+  };
+
+  const Icon = IconMap[props.variant as keyof typeof IconMap] || IconMap.default;
+
+  return (
+    <Alert variant={props.variant === 'destructive' ? 'destructive' : 'default'} className={cn(
+      "py-4",
+      props.variant === 'info' && "bg-blue-50 border-blue-200 text-blue-800",
+      props.variant === 'success' && "bg-green-50 border-green-200 text-green-800",
+      props.variant === 'warning' && "bg-yellow-50 border-yellow-200 text-yellow-800",
+    )}>
+      {props.showIcon && <Icon className="h-4 w-4" />}
+      <AlertTitle className="font-bold">{props.title}</AlertTitle>
+      <AlertDescription>{props.description}</AlertDescription>
+    </Alert>
   );
 }
 
@@ -707,6 +782,202 @@ function VideoRenderer(props: {
         className="w-full h-full"
         allowFullScreen
       />
+    </div>
+  );
+}
+
+function TabsRenderer(props: {
+  items: Array<{ label: string; content: string }>;
+  variant: string;
+}) {
+  return (
+    <Tabs defaultValue={props.items[0]?.label} className="w-full py-4">
+      <TabsList className={cn(
+        "w-full justify-start",
+        props.variant === 'pills' && "bg-transparent gap-2",
+        props.variant === 'outline' && "border border-input bg-transparent"
+      )}>
+        {props.items.map((item, i) => (
+          <TabsTrigger
+            key={i}
+            value={item.label}
+            className={cn(
+              props.variant === 'pills' && "rounded-full data-[state=active]:bg-primary data-[state=active]:text-primary-foreground",
+            )}
+          >
+            {item.label}
+          </TabsTrigger>
+        ))}
+      </TabsList>
+      {props.items.map((item, i) => (
+        <TabsContent key={i} value={item.label} className="mt-4 p-4 border rounded-lg bg-card min-h-[100px]">
+          <p className="text-muted-foreground whitespace-pre-wrap">{item.content}</p>
+        </TabsContent>
+      ))}
+    </Tabs>
+  );
+}
+
+function CarouselRenderer(props: {
+  slides: Array<{ image: string; title?: string; description?: string }>;
+  autoplay: boolean;
+  showArrows: boolean;
+  showDots: boolean;
+}) {
+  const [emblaRef, emblaApi] = useEmblaCarousel({ loop: true });
+  const [selectedIndex, setSelectedIndex] = useState(0);
+
+  const scrollPrev = useCallback(() => emblaApi && emblaApi.scrollPrev(), [emblaApi]);
+  const scrollNext = useCallback(() => emblaApi && emblaApi.scrollNext(), [emblaApi]);
+
+  const onSelect = useCallback(() => {
+    if (!emblaApi) return;
+    setSelectedIndex(emblaApi.selectedScrollSnap());
+  }, [emblaApi]);
+
+  useEffect(() => {
+    if (!emblaApi) return;
+    onSelect();
+    emblaApi.on('select', onSelect);
+
+    let interval: any;
+    if (props.autoplay) {
+      interval = setInterval(() => {
+        emblaApi.scrollNext();
+      }, 4000);
+    }
+
+    return () => {
+      emblaApi.off('select', onSelect);
+      if (interval) clearInterval(interval);
+    };
+  }, [emblaApi, onSelect, props.autoplay]);
+
+  return (
+    <div className="relative py-4 group">
+      <div className="overflow-hidden rounded-xl bg-muted shadow-lg" ref={emblaRef}>
+        <div className="flex">
+          {props.slides.map((slide, i) => (
+            <div key={i} className="flex-[0_0_100%] min-w-0 relative aspect-video">
+              <img src={slide.image} alt="" className="w-full h-full object-cover" />
+              {(slide.title || slide.description) && (
+                <div className="absolute bottom-0 inset-x-0 p-6 bg-gradient-to-t from-black/80 to-transparent text-white">
+                  {slide.title && <h4 className="text-xl font-bold mb-1">{slide.title}</h4>}
+                  {slide.description && <p className="text-sm text-white/80">{slide.description}</p>}
+                </div>
+              )}
+            </div>
+          ))}
+        </div>
+      </div>
+
+      {props.showArrows && props.slides.length > 1 && (
+        <>
+          <Button
+            variant="secondary"
+            size="icon"
+            className="absolute left-4 top-1/2 -translate-y-1/2 rounded-full opacity-0 group-hover:opacity-100 transition-opacity"
+            onClick={scrollPrev}
+          >
+            <ChevronLeft className="h-4 w-4" />
+          </Button>
+          <Button
+            variant="secondary"
+            size="icon"
+            className="absolute right-4 top-1/2 -translate-y-1/2 rounded-full opacity-0 group-hover:opacity-100 transition-opacity"
+            onClick={scrollNext}
+          >
+            <ChevronRight className="h-4 w-4" />
+          </Button>
+        </>
+      )}
+
+      {props.showDots && props.slides.length > 1 && (
+        <div className="flex justify-center gap-2 mt-4">
+          {props.slides.map((_, i) => (
+            <button
+              key={i}
+              className={cn(
+                "h-2 w-2 rounded-full transition-all",
+                selectedIndex === i ? "bg-primary w-6" : "bg-muted-foreground/30 hover:bg-muted-foreground/50"
+              )}
+              onClick={() => emblaApi && emblaApi.scrollTo(i)}
+            />
+          ))}
+        </div>
+      )}
+    </div>
+  );
+}
+
+function LogoCloudRenderer(props: {
+  logos: Array<{ src: string; alt: string; url?: string }>;
+  title?: string;
+  layout: string;
+}) {
+  return (
+    <div className="py-12">
+      {props.title && <p className="text-center text-sm font-semibold uppercase tracking-wider text-muted-foreground mb-10">{props.title}</p>}
+
+      {props.layout === 'marquee' ? (
+        <div className="flex overflow-hidden group">
+          <div className="flex animate-marquee group-hover:[animation-play-state:paused] gap-12 items-center">
+            {[...props.logos, ...props.logos].map((logo, i) => (
+              <img
+                key={i}
+                src={logo.src}
+                alt={logo.alt}
+                className="h-8 md:h-12 w-auto object-contain grayscale hover:grayscale-0 transition-all opacity-70 hover:opacity-100"
+              />
+            ))}
+          </div>
+        </div>
+      ) : (
+        <div className="grid grid-cols-2 md:grid-cols-4 gap-8 md:gap-12 items-center">
+          {props.logos.map((logo, i) => (
+            <div key={i} className="flex justify-center">
+              <img
+                src={logo.src}
+                alt={logo.alt}
+                className="h-8 md:h-12 w-auto object-contain grayscale hover:grayscale-0 transition-all opacity-70 hover:opacity-100"
+              />
+            </div>
+          ))}
+        </div>
+      )}
+    </div>
+  );
+}
+
+function TimelineRenderer(props: {
+  items: Array<{ date: string; title: string; description: string }>;
+  layout: string;
+}) {
+  return (
+    <div className="py-8">
+      <div className="relative border-l border-primary/20 ml-3 md:ml-0 md:left-1/2">
+        {props.items.map((item, i) => {
+          const isLeft = props.layout === 'left' || (props.layout === 'alternate' && i % 2 === 0);
+
+          return (
+            <div key={i} className={cn(
+              "relative mb-8 md:w-1/2",
+              isLeft ? "md:pr-12 md:text-right" : "md:pl-12 md:ml-auto"
+            )}>
+              <div className={cn(
+                "absolute top-0 -left-[1.35rem] md:left-auto h-10 w-10 rounded-full border-4 border-background bg-primary flex items-center justify-center text-[10px] font-bold text-primary-foreground",
+                isLeft ? "md:-right-[1.25rem]" : "md:-left-[1.25rem]"
+              )}>
+                {item.date}
+              </div>
+              <div className="p-5 rounded-xl bg-card border shadow-sm">
+                <h4 className="font-bold text-lg mb-1">{item.title}</h4>
+                <p className="text-sm text-muted-foreground">{item.description}</p>
+              </div>
+            </div>
+          );
+        })}
+      </div>
     </div>
   );
 }

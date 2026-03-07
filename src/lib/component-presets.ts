@@ -161,6 +161,48 @@ export const COMPONENT_CATEGORIES: ComponentCategory[] = [
         },
       },
       {
+        type: 'tabs',
+        name: 'Interactive Tabs',
+        description: 'Switch between different content sections',
+        icon: '📑',
+        defaultProps: {
+          items: [
+            { label: 'Overview', content: 'Our platform provides a comprehensive suite of tools for creators.' },
+            { label: 'Features', content: 'Enjoy features like drag-and-drop, real-time preview, and instant publishing.' },
+            { label: 'Pricing', content: 'Simple, transparent pricing for every stage of your growth.' },
+          ],
+          variant: 'default',
+        },
+      },
+      {
+        type: 'carousel',
+        name: 'Image Carousel',
+        description: 'Sliding gallery of images and content',
+        icon: '🎠',
+        defaultProps: {
+          slides: [
+            {
+              image: 'https://images.unsplash.com/photo-1498050108023-c5249f4df085?w=1200',
+              title: 'Beautiful Landscapes',
+              description: 'Explore the world through our lens'
+            },
+            {
+              image: 'https://images.unsplash.com/photo-1461749280684-dccba630e2f6?w=1200',
+              title: 'Modern Tech',
+              description: 'Building the future of the web'
+            },
+            {
+              image: 'https://images.unsplash.com/photo-1487058715912-1347958dc93c?w=1200',
+              title: 'Creative Spaces',
+              description: 'Where ideas come to life'
+            },
+          ],
+          autoplay: true,
+          showArrows: true,
+          showDots: true,
+        },
+      },
+      {
         type: 'social-links',
         name: 'Social Links',
         description: 'Social media profile links',
@@ -244,6 +286,50 @@ export const COMPONENT_CATEGORIES: ComponentCategory[] = [
     icon: '📊',
     components: [
       {
+        type: 'logo-cloud',
+        name: 'Logo Cloud',
+        description: 'Showcase trusted partner logos',
+        icon: '☁️',
+        defaultProps: {
+          title: 'Trusted by leading companies',
+          logos: [
+            { src: 'https://upload.wikimedia.org/wikipedia/commons/5/51/Google.png', alt: 'Google' },
+            { src: 'https://upload.wikimedia.org/wikipedia/commons/a/a9/Amazon_logo.svg', alt: 'Amazon' },
+            { src: 'https://upload.wikimedia.org/wikipedia/commons/0/08/Netflix_2015_logo.svg', alt: 'Netflix' },
+            { src: 'https://upload.wikimedia.org/wikipedia/commons/b/b9/Slack_Technologies_Logo.svg', alt: 'Slack' },
+          ],
+          layout: 'grid',
+        },
+      },
+      {
+        type: 'timeline',
+        name: 'Timeline',
+        description: 'Display events in chronological order',
+        icon: '📅',
+        defaultProps: {
+          items: [
+            { date: '2023', title: 'Company Founded', description: 'Our journey began with a simple idea.' },
+            { date: '2024', title: 'Series A Funding', description: 'We raised $10M to scale our operations.' },
+            { date: '2025', title: 'Global Expansion', description: 'Now serving customers in over 50 countries.' },
+          ],
+          layout: 'alternate',
+        },
+      },
+      {
+        type: 'accordion',
+        name: 'Professional Accordion',
+        description: 'Expandable content sections with professional styling',
+        icon: '↕️',
+        defaultProps: {
+          items: [
+            { title: 'How does it work?', content: 'Our system uses advanced algorithms to process your data instantly.' },
+            { title: 'Is it secure?', content: 'Yes, we use enterprise-grade encryption for all data at rest and in transit.' },
+            { title: 'Can I cancel anytime?', content: 'Absolutely! No long-term contracts, cancel with one click.' },
+          ],
+          variant: 'separated',
+        },
+      },
+      {
         type: 'stats',
         name: 'Statistics',
         description: 'Display key metrics and numbers',
@@ -294,6 +380,25 @@ export const COMPONENT_CATEGORIES: ComponentCategory[] = [
           targetDate: new Date(Date.now() + 7 * 24 * 60 * 60 * 1000).toISOString(),
           title: 'Coming Soon',
           style: 'flip',
+        },
+      },
+    ],
+  },
+  {
+    id: 'feedback',
+    name: 'Feedback & Status',
+    icon: '🔔',
+    components: [
+      {
+        type: 'alert',
+        name: 'Alert Banner',
+        description: 'Display important messages or status updates',
+        icon: '⚠️',
+        defaultProps: {
+          title: 'Update Available',
+          description: 'A new version of PageCraft is now available with exciting new features.',
+          variant: 'info',
+          showIcon: true,
         },
       },
     ],

@@ -1,7 +1,7 @@
 // Component Props Editor - Edit individual component properties
 import { useState } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
-import { X, Trash2, Eye, EyeOff, Copy, Settings2, Sliders, Play } from 'lucide-react';
+import { X, Trash2, Eye, EyeOff, Copy, Settings2, Sliders, Play, Plus, ChevronDown, ChevronUp } from 'lucide-react';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
 import { Textarea } from '@/components/ui/textarea';
@@ -54,7 +54,7 @@ export function ComponentPropsEditor({
 
   const updateArrayProp = (key: string, index: number, field: string, value: unknown) => {
     const arr = [...((component.props as Record<string, unknown>)[key] as unknown[])];
-    (arr[index] as Record<string, unknown>)[field] = value;
+    arr[index] = { ...(arr[index] as Record<string, unknown>), [field]: value };
     updateProp(key, arr);
   };
 
@@ -578,6 +578,245 @@ function renderPropsEditor(
               </SelectContent>
             </Select>
           </PropField>
+        </>
+      );
+
+    case 'tabs':
+      return (
+        <>
+          <PropField label="Variant">
+            <Select value={props.variant as string} onValueChange={(v) => updateProp('variant', v)}>
+              <SelectTrigger><SelectValue /></SelectTrigger>
+              <SelectContent>
+                <SelectItem value="default">Default</SelectItem>
+                <SelectItem value="outline">Outline</SelectItem>
+                <SelectItem value="pills">Pills</SelectItem>
+              </SelectContent>
+            </Select>
+          </PropField>
+          <div className="space-y-4 pt-2">
+            <div className="flex items-center justify-between">
+              <Label className="text-xs font-semibold uppercase tracking-wider">Tab Items</Label>
+              <Button size="icon" variant="ghost" className="h-6 w-6" onClick={() => addArrayItem('items', { label: 'New Tab', content: 'New Content' })}>
+                <Plus className="h-4 w-4" />
+              </Button>
+            </div>
+            {(props.items as any[]).map((item, i) => (
+              <div key={i} className="p-3 border rounded-lg space-y-3 bg-muted/30">
+                <div className="flex items-center justify-between">
+                  <span className="text-[10px] font-bold uppercase text-muted-foreground">Tab {i + 1}</span>
+                  <Button size="icon" variant="ghost" className="h-6 w-6 text-destructive" onClick={() => removeArrayItem('items', i)}>
+                    <Trash2 className="h-4 w-4" />
+                  </Button>
+                </div>
+                <PropField label="Label">
+                  <Input value={item.label} onChange={(e) => updateArrayProp('items', i, 'label', e.target.value)} />
+                </PropField>
+                <PropField label="Content">
+                  <Textarea value={item.content} onChange={(e) => updateArrayProp('items', i, 'content', e.target.value)} />
+                </PropField>
+              </div>
+            ))}
+          </div>
+        </>
+      );
+
+    case 'accordion':
+      return (
+        <>
+          <PropField label="Variant">
+            <Select value={props.variant as string} onValueChange={(v) => updateProp('variant', v)}>
+              <SelectTrigger><SelectValue /></SelectTrigger>
+              <SelectContent>
+                <SelectItem value="default">Default</SelectItem>
+                <SelectItem value="separated">Separated Cards</SelectItem>
+                <SelectItem value="ghost">Ghost (No Border)</SelectItem>
+              </SelectContent>
+            </Select>
+          </PropField>
+          <div className="space-y-4 pt-2">
+            <div className="flex items-center justify-between">
+              <Label className="text-xs font-semibold uppercase tracking-wider">Accordion Items</Label>
+              <Button size="icon" variant="ghost" className="h-6 w-6" onClick={() => addArrayItem('items', { title: 'Question?', content: 'Answer goes here.' })}>
+                <Plus className="h-4 w-4" />
+              </Button>
+            </div>
+            {(props.items as any[]).map((item, i) => (
+              <div key={i} className="p-3 border rounded-lg space-y-3 bg-muted/30">
+                <div className="flex items-center justify-between">
+                  <span className="text-[10px] font-bold uppercase text-muted-foreground">Item {i + 1}</span>
+                  <Button size="icon" variant="ghost" className="h-6 w-6 text-destructive" onClick={() => removeArrayItem('items', i)}>
+                    <Trash2 className="h-4 w-4" />
+                  </Button>
+                </div>
+                <PropField label="Title">
+                  <Input value={item.title} onChange={(e) => updateArrayProp('items', i, 'title', e.target.value)} />
+                </PropField>
+                <PropField label="Content">
+                  <Textarea value={item.content} onChange={(e) => updateArrayProp('items', i, 'content', e.target.value)} />
+                </PropField>
+              </div>
+            ))}
+          </div>
+        </>
+      );
+
+    case 'alert':
+      return (
+        <>
+          <PropField label="Title">
+            <Input value={props.title as string} onChange={(e) => updateProp('title', e.target.value)} />
+          </PropField>
+          <PropField label="Description">
+            <Textarea value={props.description as string} onChange={(e) => updateProp('description', e.target.value)} />
+          </PropField>
+          <PropField label="Variant">
+            <Select value={props.variant as string} onValueChange={(v) => updateProp('variant', v)}>
+              <SelectTrigger><SelectValue /></SelectTrigger>
+              <SelectContent>
+                <SelectItem value="default">Default (Gray)</SelectItem>
+                <SelectItem value="info">Info (Blue)</SelectItem>
+                <SelectItem value="success">Success (Green)</SelectItem>
+                <SelectItem value="warning">Warning (Yellow)</SelectItem>
+                <SelectItem value="destructive">Destructive (Red)</SelectItem>
+              </SelectContent>
+            </Select>
+          </PropField>
+          <div className="flex items-center gap-2 pt-2">
+            <Switch checked={props.showIcon as boolean} onCheckedChange={(v) => updateProp('showIcon', v)} />
+            <Label className="text-xs">Show Icon</Label>
+          </div>
+        </>
+      );
+
+    case 'carousel':
+      return (
+        <>
+          <div className="flex items-center gap-4 py-2">
+            <div className="flex items-center gap-2">
+              <Switch checked={props.autoplay as boolean} onCheckedChange={(v) => updateProp('autoplay', v)} />
+              <Label className="text-xs">Autoplay</Label>
+            </div>
+            <div className="flex items-center gap-2">
+              <Switch checked={props.showArrows as boolean} onCheckedChange={(v) => updateProp('showArrows', v)} />
+              <Label className="text-xs">Arrows</Label>
+            </div>
+            <div className="flex items-center gap-2">
+              <Switch checked={props.showDots as boolean} onCheckedChange={(v) => updateProp('showDots', v)} />
+              <Label className="text-xs">Dots</Label>
+            </div>
+          </div>
+          <div className="space-y-4 pt-2">
+            <div className="flex items-center justify-between">
+              <Label className="text-xs font-semibold uppercase tracking-wider">Slides</Label>
+              <Button size="icon" variant="ghost" className="h-6 w-6" onClick={() => addArrayItem('slides', { image: 'https://images.unsplash.com/photo-1498050108023-c5249f4df085?w=1200', title: 'New Slide' })}>
+                <Plus className="h-4 w-4" />
+              </Button>
+            </div>
+            {(props.slides as any[]).map((slide, i) => (
+              <div key={i} className="p-3 border rounded-lg space-y-3 bg-muted/30">
+                <div className="flex items-center justify-between">
+                  <span className="text-[10px] font-bold uppercase text-muted-foreground">Slide {i + 1}</span>
+                  <Button size="icon" variant="ghost" className="h-6 w-6 text-destructive" onClick={() => removeArrayItem('slides', i)}>
+                    <Trash2 className="h-4 w-4" />
+                  </Button>
+                </div>
+                <PropField label="Image URL">
+                  <Input value={slide.image} onChange={(e) => updateArrayProp('slides', i, 'image', e.target.value)} />
+                </PropField>
+                <PropField label="Title">
+                  <Input value={slide.title} onChange={(e) => updateArrayProp('slides', i, 'title', e.target.value)} />
+                </PropField>
+                <PropField label="Description">
+                  <Textarea value={slide.description} onChange={(e) => updateArrayProp('slides', i, 'description', e.target.value)} />
+                </PropField>
+              </div>
+            ))}
+          </div>
+        </>
+      );
+
+    case 'logo-cloud':
+      return (
+        <>
+          <PropField label="Title">
+            <Input value={props.title as string} onChange={(e) => updateProp('title', e.target.value)} />
+          </PropField>
+          <PropField label="Layout">
+            <Select value={props.layout as string} onValueChange={(v) => updateProp('layout', v)}>
+              <SelectTrigger><SelectValue /></SelectTrigger>
+              <SelectContent>
+                <SelectItem value="grid">Grid</SelectItem>
+                <SelectItem value="marquee">Marquee (Animated)</SelectItem>
+              </SelectContent>
+            </Select>
+          </PropField>
+          <div className="space-y-4 pt-2">
+            <div className="flex items-center justify-between">
+              <Label className="text-xs font-semibold uppercase tracking-wider">Logos</Label>
+              <Button size="icon" variant="ghost" className="h-6 w-6" onClick={() => addArrayItem('logos', { src: '', alt: 'Logo' })}>
+                <Plus className="h-4 w-4" />
+              </Button>
+            </div>
+            {(props.logos as any[]).map((logo, i) => (
+              <div key={i} className="p-3 border rounded-lg space-y-3 bg-muted/30">
+                <div className="flex items-center justify-between">
+                  <span className="text-[10px] font-bold uppercase text-muted-foreground">Logo {i + 1}</span>
+                  <Button size="icon" variant="ghost" className="h-6 w-6 text-destructive" onClick={() => removeArrayItem('logos', i)}>
+                    <Trash2 className="h-4 w-4" />
+                  </Button>
+                </div>
+                <PropField label="Source URL">
+                  <Input value={logo.src} onChange={(e) => updateArrayProp('logos', i, 'src', e.target.value)} />
+                </PropField>
+                <PropField label="Alt Text">
+                  <Input value={logo.alt} onChange={(e) => updateArrayProp('logos', i, 'alt', e.target.value)} />
+                </PropField>
+              </div>
+            ))}
+          </div>
+        </>
+      );
+
+    case 'timeline':
+      return (
+        <>
+          <PropField label="Layout">
+            <Select value={props.layout as string} onValueChange={(v) => updateProp('layout', v)}>
+              <SelectTrigger><SelectValue /></SelectTrigger>
+              <SelectContent>
+                <SelectItem value="left">Left Aligned</SelectItem>
+                <SelectItem value="alternate">Alternate Sides</SelectItem>
+              </SelectContent>
+            </Select>
+          </PropField>
+          <div className="space-y-4 pt-2">
+            <div className="flex items-center justify-between">
+              <Label className="text-xs font-semibold uppercase tracking-wider">Events</Label>
+              <Button size="icon" variant="ghost" className="h-6 w-6" onClick={() => addArrayItem('items', { date: '2025', title: 'New Event', description: '' })}>
+                <Plus className="h-4 w-4" />
+              </Button>
+            </div>
+            {(props.items as any[]).map((item, i) => (
+              <div key={i} className="p-3 border rounded-lg space-y-3 bg-muted/30">
+                <div className="flex items-center justify-between">
+                  <span className="text-[10px] font-bold uppercase text-muted-foreground">Event {i + 1}</span>
+                  <Button size="icon" variant="ghost" className="h-6 w-6 text-destructive" onClick={() => removeArrayItem('items', i)}>
+                    <Trash2 className="h-4 w-4" />
+                  </Button>
+                </div>
+                <PropField label="Date/Label">
+                  <Input value={item.date} onChange={(e) => updateArrayProp('items', i, 'date', e.target.value)} />
+                </PropField>
+                <PropField label="Title">
+                  <Input value={item.title} onChange={(e) => updateArrayProp('items', i, 'title', e.target.value)} />
+                </PropField>
+                <PropField label="Description">
+                  <Textarea value={item.description} onChange={(e) => updateArrayProp('items', i, 'description', e.target.value)} />
+                </PropField>
+              </div>
+            ))}
+          </div>
         </>
       );
 
