@@ -51,22 +51,24 @@ export function ComponentRenderer({
 
   // Get animation config
   const componentAnimations = component.animations || [];
-  const entranceAnim = ANIMATION_PRESET_LIST.find(a => componentAnimations.includes(a.id) && a.category === 'entrance');
-  const hoverAnim = ANIMATION_PRESET_LIST.find(a => componentAnimations.includes(a.id) && a.category === 'hover');
-  const loopAnim = ANIMATION_PRESET_LIST.find(a => componentAnimations.includes(a.id) && a.category === 'continuous');
+  const entranceAnim = ANIMATION_PRESET_LIST.find(a => componentAnimations.includes(a.id) && a.type === 'entrance');
+  const hoverAnim = ANIMATION_PRESET_LIST.find(a => componentAnimations.includes(a.id) && a.type === 'hover');
+  const loopAnim = ANIMATION_PRESET_LIST.find(a => componentAnimations.includes(a.id) && a.type === 'loop');
 
   const animationProps = {
-    initial: entranceAnim?.gsapConfig?.from || { opacity: 1 },
-    whileInView: entranceAnim?.gsapConfig?.to || { opacity: 1 },
+    initial: entranceAnim ? { opacity: 0, y: 20 } : { opacity: 1 },
+    whileInView: entranceAnim ? { opacity: 1, y: 0 } : { opacity: 1 },
     viewport: { once: true, amount: 0.2 },
     whileHover: hoverAnim?.id === 'hover-scale' ? { scale: 1.05 } :
-                hoverAnim?.id === 'hover-lift' ? { y: -10 } : undefined,
-    animate: loopAnim?.id === 'pulse' ? { scale: [1, 1.05, 1] } :
-             loopAnim?.id === 'float' ? { y: [0, -10, 0] } : undefined,
+                hoverAnim?.id === 'hover-lift' ? { y: -10 } :
+                hoverAnim?.id === 'hover-glow' ? { boxShadow: "0 0 20px rgba(var(--primary-rgb), 0.5)" } : undefined,
+    animate: loopAnim?.id === 'pulse' ? { scale: [1, 1.02, 1] } :
+             loopAnim?.id === 'float' ? { y: [0, -10, 0] } :
+             loopAnim?.id === 'spin' ? { rotate: 360 } : undefined,
     transition: {
-      duration: entranceAnim?.gsapConfig?.duration || 0.5,
+      duration: 0.5,
       ease: "easeOut",
-      ...(loopAnim ? { repeat: Infinity, duration: 2 } : {})
+      ...(loopAnim ? { repeat: Infinity, duration: loopAnim.id === 'spin' ? 10 : 3, ease: "linear" } : {})
     }
   };
 
@@ -86,6 +88,8 @@ export function ComponentRenderer({
 
 function renderComponent(component: PageComponent) {
   switch (component.type) {
+    case 'product-item':
+      return <ProductItemRenderer {...component.props} />;
     case 'hero':
       return <HeroRenderer {...component.props} />;
     case 'heading':
@@ -668,11 +672,12 @@ function PricingRenderer(props: {
       </ul>
 
       <Button
+        variant={props.highlighted ? "default" : "outline"}
         className={cn(
           "w-full h-12 rounded-2xl font-bold text-sm transition-all active:scale-95 shadow-lg",
           props.highlighted
-            ? "bg-primary text-primary-foreground hover:bg-primary/90 shadow-primary/25"
-            : "variant-outline border-primary/20 hover:bg-primary/5 text-primary"
+            ? "shadow-primary/25"
+            : "border-primary/20 hover:bg-primary/5 text-primary"
         )}
         asChild
       >
@@ -770,6 +775,137 @@ function ContactFormRenderer(props: {
         ))}
         <Button type="submit" className="w-full">{props.submitText}</Button>
       </form>
+    </Card>
+  );
+}
+
+function ProductItemRenderer(props: {
+  title: string;
+  productNo: string;
+  productUrl: string;
+  price: string;
+  description?: string;
+  image?: string;
+  buttonText: string;
+  badge?: string;
+  layout?: 'card' | 'list' | 'minimal';
+}) {
+  const layout = props.layout || 'card';
+
+  if (layout === 'list') {
+    return (
+      <a
+        href={props.productUrl}
+        target="_blank"
+        rel="noopener noreferrer"
+        className="block group/product bg-card hover:bg-accent/30 border border-border rounded-2xl p-3 transition-all active:scale-[0.98]"
+      >
+        <div className="flex items-center gap-4">
+          {props.image && (
+            <div className="w-20 h-20 shrink-0 rounded-xl overflow-hidden border border-border">
+              <img src={props.image} alt={props.title} className="w-full h-full object-cover transition-transform group-hover/product:scale-110" />
+            </div>
+          )}
+          <div className="flex-1 min-w-0 flex flex-col justify-center">
+            <div className="flex items-center gap-2 mb-0.5">
+              {props.badge && (
+                <span className="bg-primary text-primary-foreground text-[8px] font-bold px-1.5 py-0.5 rounded-full uppercase">
+                  {props.badge}
+                </span>
+              )}
+              <h3 className="font-bold text-sm truncate">{props.title}</h3>
+            </div>
+            {props.description && <p className="text-xs text-muted-foreground line-clamp-1 mb-1">{props.description}</p>}
+            <div className="text-sm font-black text-primary">{props.price}</div>
+          </div>
+          <div className="shrink-0 h-8 w-8 rounded-full bg-primary/10 flex items-center justify-center text-primary transition-colors group-hover/product:bg-primary group-hover/product:text-primary-foreground">
+            <span className="text-lg">→</span>
+          </div>
+        </div>
+      </a>
+    );
+  }
+
+  if (layout === 'minimal') {
+    return (
+      <a
+        href={props.productUrl}
+        target="_blank"
+        rel="noopener noreferrer"
+        className="block group/product bg-card hover:bg-accent/30 border border-border rounded-xl p-4 transition-all active:scale-[0.98]"
+      >
+        <div className="flex items-center justify-between gap-4">
+          <div className="flex-1 min-w-0">
+            <h3 className="font-bold text-base mb-1 truncate">{props.title}</h3>
+            <div className="flex items-center gap-3">
+              <span className="text-sm font-black text-primary">{props.price}</span>
+              {props.badge && (
+                <span className="text-[10px] text-muted-foreground font-medium flex items-center gap-1">
+                  <span className="h-1 w-1 rounded-full bg-primary" /> {props.badge}
+                </span>
+              )}
+            </div>
+          </div>
+          <Button size="sm" className="rounded-full px-4 h-8 text-xs font-bold">
+            {props.buttonText}
+          </Button>
+        </div>
+      </a>
+    );
+  }
+
+  // Default Card Layout (Enhanced Lynk-style)
+  return (
+    <Card className="overflow-hidden rounded-2xl border border-border bg-card transition-all hover:shadow-xl hover:-translate-y-1 group/product flex flex-col h-full shadow-sm">
+      <div className="relative aspect-square overflow-hidden">
+        {props.image ? (
+          <img
+            src={props.image}
+            alt={props.title}
+            className="w-full h-full object-cover transition-transform duration-700 group-hover/product:scale-110"
+          />
+        ) : (
+          <div className="w-full h-full bg-muted/30 flex items-center justify-center text-muted-foreground">
+            <span className="text-xs font-medium">No Product Image</span>
+          </div>
+        )}
+        {props.badge && (
+          <div className="absolute top-3 left-3 bg-primary text-primary-foreground text-[9px] font-black px-2.5 py-1 rounded-full uppercase tracking-widest shadow-lg">
+            {props.badge}
+          </div>
+        )}
+      </div>
+
+      <div className="p-4 flex flex-col flex-1 bg-gradient-to-b from-transparent to-muted/5">
+        <div className="flex-1 space-y-1.5 mb-4">
+          <div className="text-[10px] font-bold text-primary/60 uppercase tracking-tighter">
+            PROD #{props.productNo || '001'}
+          </div>
+          <h3 className="font-extrabold text-base leading-tight line-clamp-2 text-foreground group-hover/product:text-primary transition-colors tracking-tight">
+            {props.title}
+          </h3>
+
+          {props.description && (
+            <p className="text-xs text-muted-foreground line-clamp-2 leading-relaxed font-medium">
+              {props.description}
+            </p>
+          )}
+        </div>
+
+        <div className="flex items-center justify-between gap-2 pt-2 border-t border-border/50 mt-auto">
+          <div className="text-lg font-black text-primary tracking-tighter">
+            {props.price}
+          </div>
+          <Button
+            className="rounded-full font-black transition-all active:scale-90 px-4 h-9 text-xs uppercase tracking-wider"
+            asChild
+          >
+            <a href={props.productUrl} target="_blank" rel="noopener noreferrer">
+              {props.buttonText}
+            </a>
+          </Button>
+        </div>
+      </div>
     </Card>
   );
 }

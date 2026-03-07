@@ -299,6 +299,30 @@ export const COMPONENT_CATEGORIES: ComponentCategory[] = [
     ],
   },
   {
+    id: 'shopping',
+    name: 'Shopping',
+    icon: '🛍️',
+    components: [
+      {
+        type: 'product-item',
+        name: 'Product Item',
+        description: 'Affiliate product card with price and link',
+        icon: '🏷️',
+        defaultProps: {
+          title: 'Premium Wireless Headphones',
+          productNo: '001',
+          productUrl: 'https://shopee.com',
+          price: 'Rp 1.299.000',
+          description: 'High-quality sound with active noise cancellation and 30-hour battery life.',
+          image: 'https://images.unsplash.com/photo-1505740420928-5e560c06d30e?w=400',
+          buttonText: 'Beli Sekarang',
+          badge: 'Best Seller',
+          layout: 'card',
+        },
+      },
+    ],
+  },
+  {
     id: 'forms',
     name: 'Forms',
     icon: '📋',
