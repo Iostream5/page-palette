@@ -72,7 +72,8 @@ export function ComponentRenderer({
 
   return (
     <motion.div 
-      className={cn(wrapperClasses, loopAnim?.cssClass)}
+      id={component.id}
+      className={cn(wrapperClasses, loopAnim?.cssClass, (component as any).className)}
       style={advancedStyles}
       onClick={onSelect}
       {...animationProps}
