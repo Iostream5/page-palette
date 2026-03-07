@@ -137,9 +137,10 @@ export function PageCanvas({
                   'relative rounded-lg transition-all',
                   isEditing && 'border border-transparent hover:border-border',
                   selectedComponentId === component.id && 'border-primary ring-1 ring-primary',
-                  !component.visible && 'opacity-50'
+                  !component.visible && 'opacity-50',
+                  (component as any).locked && "pointer-events-none opacity-80"
                 )}
-                onClick={() => onSelectComponent(component.id)}
+                onClick={() => !(component as any).locked && onSelectComponent(component.id)}
               >
                 {/* Component Controls */}
                 {isEditing && (
@@ -223,6 +224,7 @@ export function PageCanvas({
                     component={component}
                     isEditing={isEditing}
                     isSelected={selectedComponentId === component.id}
+                    deviceMode={deviceMode}
                   />
                 </div>
               </div>

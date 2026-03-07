@@ -23,6 +23,14 @@ import {
   Monitor,
   Smartphone,
   Tablet,
+  Undo2,
+  Redo2,
+  Layers,
+  Lock,
+  Unlock,
+  Pencil,
+  Trash2,
+  EyeOff,
 } from 'lucide-react';
 import {
   Dialog,
@@ -36,6 +44,7 @@ import { EditorForm } from '@/components/editor/EditorForm';
 import { PreviewRenderer } from '@/components/preview/PreviewRenderer';
 import { ComponentLibrary } from '@/components/editor/ComponentLibrary';
 import { BrandKitControls } from '@/components/editor/BrandKitControls';
+import { useHistory } from '@/hooks/useHistory';
 import { PageCanvas } from '@/components/editor/PageCanvas';
 import { ComponentPropsEditor } from '@/components/editor/ComponentPropsEditor';
 import { ExportDialog } from '@/components/editor/ExportDialog';
@@ -48,7 +57,6 @@ export default function Editor() {
   const { data: project, isLoading } = useProject(id!);
   const updateProject = useUpdateProject();
 
-  const [data, setData] = useState<Record<string, any>>({});
   const [projectName, setProjectName] = useState('');
   const [slug, setSlug] = useState('');
   const [isSaving, setIsSaving] = useState(false);
@@ -56,41 +64,46 @@ export default function Editor() {
   const [publishDialogOpen, setPublishDialogOpen] = useState(false);
   const [copied, setCopied] = useState(false);
   const [deviceMode, setDeviceMode] = useState<'desktop' | 'tablet' | 'mobile'>('desktop');
-  const [activeTab, setActiveTab] = useState<'components' | 'styles'>('components');
+  const [activeTab, setActiveTab] = useState<'components' | 'styles' | 'navigator'>('components');
   
-  // Component Library state
-  const [pageComponents, setPageComponents] = useState<PageComponent[]>([]);
+  // History management for all project data
+  const {
+    state: data,
+    setState: setDataHistory,
+    undo,
+    redo,
+    canUndo,
+    canRedo,
+    reset: resetHistory
+  } = useHistory<Record<string, any>>({});
+
+  const setData = useCallback((newData: Record<string, any> | ((prev: Record<string, any>) => Record<string, any>)) => {
+    setDataHistory(newData);
+    setHasChanges(true);
+  }, [setDataHistory]);
+
+  const pageComponents = (data.pageComponents as PageComponent[]) || [];
   const [selectedComponentId, setSelectedComponentId] = useState<string | null>(null);
   
   // Determine if this is a custom page builder project
   const isCustomProject = project?.category === 'custom';
 
   useEffect(() => {
-    if (project) {
-      setData(project.data);
+    if (project && Object.keys(data).length === 0) {
+      resetHistory(project.data);
       setProjectName(project.name);
       setSlug(project.slug || '');
-      // Load saved page components if any (only for custom projects)
-      if (project.category === 'custom') {
-        const savedComponents = (project.data as Record<string, unknown>).pageComponents as PageComponent[] | undefined;
-        if (savedComponents) {
-          setPageComponents(savedComponents);
-        }
-      }
     }
-  }, [project]);
+  }, [project, resetHistory, data]);
 
   const handleDataChange = useCallback((newData: Record<string, unknown>) => {
     setData(newData);
-    setHasChanges(true);
-  }, []);
+  }, [setData]);
 
   // Handle page components changes
   const handleComponentsChange = useCallback((components: PageComponent[]) => {
-    setPageComponents(components);
     setData(prev => ({ ...prev, pageComponents: components }));
-    setHasChanges(true);
-  }, []);
+  }, [setData]);
 
   // Add component from library
   const handleAddComponent = useCallback((component: PageComponent) => {
@@ -274,6 +287,30 @@ export default function Editor() {
           </div>
         </div>
 
+        {/* Undo / Redo */}
+        <div className="flex items-center gap-1">
+          <Button
+            variant="ghost"
+            size="icon"
+            className="h-8 w-8"
+            onClick={undo}
+            disabled={!canUndo}
+            title="Undo"
+          >
+            <Undo2 className="h-4 w-4" />
+          </Button>
+          <Button
+            variant="ghost"
+            size="icon"
+            className="h-8 w-8"
+            onClick={redo}
+            disabled={!canRedo}
+            title="Redo"
+          >
+            <Redo2 className="h-4 w-4" />
+          </Button>
+        </div>
+
         {/* Responsive Toggles */}
         <div className="hidden items-center rounded-lg border border-border bg-muted/50 p-1 md:flex">
           <Button
@@ -429,6 +466,18 @@ export default function Editor() {
                   <Palette className="h-4 w-4" />
                   Global Styles
                 </button>
+                <button
+                  onClick={() => setActiveTab('navigator')}
+                  className={cn(
+                    "flex flex-1 items-center justify-center gap-2 py-3 text-sm font-medium transition-colors hover:bg-muted/50",
+                    activeTab === 'navigator'
+                      ? "border-b-2 border-primary text-primary"
+                      : "text-muted-foreground"
+                  )}
+                >
+                  <Layers className="h-4 w-4" />
+                  Navigator
+                </button>
               </div>
 
               <div className="flex-1 overflow-hidden">
@@ -437,7 +486,7 @@ export default function Editor() {
                     onAddComponent={handleAddComponent}
                     existingComponentCount={pageComponents.length}
                   />
-                ) : (
+                ) : activeTab === 'styles' ? (
                   <div className="h-full overflow-auto p-4">
                     <BrandKitControls
                       brandKit={(data.brandKit as BrandKit) || {}}
@@ -446,6 +495,103 @@ export default function Editor() {
                         setHasChanges(true);
                       }}
                     />
+                  </div>
+                ) : (
+                  <div className="h-full overflow-auto p-4">
+                    <div className="mb-4 text-sm font-medium flex items-center gap-2">
+                      <Layers className="h-4 w-4" />
+                      Page Navigator
+                    </div>
+                    <div className="space-y-2">
+                      {pageComponents.map((comp) => (
+                        <div
+                          key={comp.id}
+                          onClick={() => setSelectedComponentId(comp.id)}
+                          className={cn(
+                            "group flex items-center justify-between p-3 rounded-lg border border-border cursor-pointer transition-colors",
+                            selectedComponentId === comp.id ? "bg-primary/10 border-primary" : "hover:bg-accent",
+                            (comp as any).locked && "opacity-80"
+                          )}
+                        >
+                          <div className="flex items-center gap-2 overflow-hidden flex-1">
+                            <span className="text-muted-foreground shrink-0 text-[10px] w-4">{comp.order + 1}</span>
+                            <div className="flex flex-col min-w-0">
+                              <span className="text-sm font-medium capitalize truncate">
+                                {(comp as any).customName || comp.type.replace('-', ' ')}
+                              </span>
+                              <span className="text-[10px] text-muted-foreground uppercase">{comp.type}</span>
+                            </div>
+                          </div>
+                          <div className="flex items-center gap-1 opacity-0 group-hover:opacity-100 shrink-0">
+                            <Button
+                              variant="ghost"
+                              size="icon"
+                              className="h-7 w-7"
+                              onClick={(e) => {
+                                e.stopPropagation();
+                                const name = prompt("Enter component name:", (comp as any).customName || "");
+                                if (name !== null) {
+                                  const updated = pageComponents.map(c =>
+                                    c.id === comp.id ? { ...c, customName: name } : c
+                                  );
+                                  handleComponentsChange(updated);
+                                }
+                              }}
+                              title="Rename"
+                            >
+                              <Pencil className="h-3 w-3" />
+                            </Button>
+                            <Button
+                              variant="ghost"
+                              size="icon"
+                              className="h-7 w-7"
+                              onClick={(e) => {
+                                e.stopPropagation();
+                                const updated = pageComponents.map(c =>
+                                  c.id === comp.id ? { ...c, locked: !(c as any).locked } : c
+                                );
+                                handleComponentsChange(updated);
+                              }}
+                              title={(comp as any).locked ? "Unlock" : "Lock"}
+                            >
+                              {(comp as any).locked ? <Lock className="h-3 w-3" /> : <Unlock className="h-3 w-3" />}
+                            </Button>
+                            <Button
+                              variant="ghost"
+                              size="icon"
+                              className="h-7 w-7"
+                              onClick={(e) => {
+                                e.stopPropagation();
+                                const updated = pageComponents.map(c =>
+                                  c.id === comp.id ? { ...c, visible: !c.visible } : c
+                                );
+                                handleComponentsChange(updated);
+                              }}
+                              title={comp.visible ? "Hide" : "Show"}
+                            >
+                              {comp.visible ? <Eye className="h-3 w-3" /> : <EyeOff className="h-3 w-3" />}
+                            </Button>
+                            <Button
+                              variant="ghost"
+                              size="icon"
+                              className="h-7 w-7 text-destructive"
+                              onClick={(e) => {
+                                e.stopPropagation();
+                                handleDeleteComponent(comp.id);
+                              }}
+                              title="Delete"
+                            >
+                              <Trash2 className="h-3 w-3" />
+                            </Button>
+                          </div>
+                        </div>
+                      ))}
+                      {pageComponents.length === 0 && (
+                        <p className="text-center text-sm text-muted-foreground py-8">
+                          No components yet. Add some to see them here.
+                        </p>
+                      )}
+                    </div>
                   </div>
                 )}
               </div>
@@ -506,6 +652,7 @@ export default function Editor() {
                   onDelete={() => handleDeleteComponent(selectedComponent.id)}
                   onDuplicate={() => handleDuplicateComponent(selectedComponent.id)}
                   onClose={() => setSelectedComponentId(null)}
+                  deviceMode={deviceMode}
                 />
               </div>
             )}

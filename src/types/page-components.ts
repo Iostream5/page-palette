@@ -27,6 +27,8 @@ export interface PageComponentBase {
   type: PageComponentType;
   order: number;
   visible: boolean;
+  customName?: string;
+  locked?: boolean;
 }
 
 export interface HeroComponent extends PageComponentBase {
