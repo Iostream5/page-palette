@@ -22,6 +22,7 @@ import { Label } from '@/components/ui/label';
 
 interface ComponentRendererProps {
   component: PageComponent;
+  allComponents?: PageComponent[];
   isEditing?: boolean;
   onSelect?: () => void;
   isSelected?: boolean;
@@ -29,6 +30,7 @@ interface ComponentRendererProps {
 
 export function ComponentRenderer({ 
   component, 
+  allComponents = [],
   isEditing = false,
   onSelect,
   isSelected = false,
@@ -56,6 +58,11 @@ export function ComponentRenderer({
   const advancedStyles = {
     padding: getResponsiveProp('padding'),
     margin: getResponsiveProp('margin'),
+    gap: getResponsiveProp('gap'),
+    width: getResponsiveProp('width'),
+    height: getResponsiveProp('height'),
+    background: props.background,
+    border: props.border,
     zIndex: props.zIndex,
     opacity: props.opacity !== undefined ? props.opacity / 100 : undefined,
   };
@@ -92,12 +99,17 @@ export function ComponentRenderer({
       {...animationProps}
       layout
     >
-      {renderComponent(component)}
+      {renderComponent(component, { allComponents, isEditing, deviceMode })}
     </motion.div>
   );
 }
 
-function renderComponent(component: PageComponent) {
+function renderComponent(
+  component: PageComponent,
+  context: { allComponents: PageComponent[], isEditing: boolean, deviceMode: any }
+) {
+  const { allComponents, isEditing, deviceMode } = context;
+
   switch (component.type) {
     case 'product-item':
       return <ProductItemRenderer {...component.props} />;
@@ -106,6 +118,13 @@ function renderComponent(component: PageComponent) {
     case 'heading':
       return <HeadingRenderer {...component.props} />;
     case 'text':
+      // Handle both legacy Text and new Primitive Text
+      if ((component.props as any).content !== undefined && (component.props as any).fontSize !== undefined && typeof (component.props as any).fontSize === 'string' && !['small', 'medium', 'large'].includes((component.props as any).fontSize)) {
+        return <PrimitiveTextRenderer {...component.props} allComponents={allComponents} isEditing={isEditing} deviceMode={deviceMode} />;
+      }
+      if ((component.props as any).children?.length > 0) {
+        return <PrimitiveTextRenderer {...component.props} allComponents={allComponents} isEditing={isEditing} deviceMode={deviceMode} />;
+      }
       return <TextRenderer {...component.props} />;
     case 'button':
       return <ButtonRenderer {...component.props} />;
@@ -155,6 +174,16 @@ function renderComponent(component: PageComponent) {
       return <ContainerRenderer {...component.props} />;
     case 'layout-stack':
       return <StackRenderer {...component.props} />;
+    case 'box':
+      return <BoxRenderer {...component.props} allComponents={allComponents} isEditing={isEditing} deviceMode={deviceMode} />;
+    case 'flex':
+      return <FlexRenderer {...component.props} allComponents={allComponents} isEditing={isEditing} deviceMode={deviceMode} />;
+    case 'grid':
+      return <GridRenderer {...component.props} allComponents={allComponents} isEditing={isEditing} deviceMode={deviceMode} />;
+    case 'image-basic':
+      return <ImageBasicRenderer {...component.props} allComponents={allComponents} isEditing={isEditing} deviceMode={deviceMode} />;
+    case 'button-basic':
+      return <ButtonBasicRenderer {...component.props} allComponents={allComponents} isEditing={isEditing} deviceMode={deviceMode} />;
     case 'content-paragraph':
       return <ParagraphRenderer {...component.props} />;
     case 'content-badge':
@@ -178,6 +207,209 @@ function renderComponent(component: PageComponent) {
     default:
       return <div className="p-4 text-muted-foreground">Unknown component</div>;
   }
+}
+
+// ============= Primitive Renderers =============
+
+function RecursiveRenderer({
+  childrenIds,
+  allComponents,
+  isEditing,
+  deviceMode
+}: {
+  childrenIds?: string[],
+  allComponents: PageComponent[],
+  isEditing: boolean,
+  deviceMode: any
+}) {
+  if (!childrenIds || childrenIds.length === 0) {
+    if (isEditing) {
+      return (
+        <div className="p-4 border border-dashed border-muted-foreground/20 rounded text-center text-[10px] text-muted-foreground uppercase tracking-widest">
+          Drop components here
+        </div>
+      );
+    }
+    return null;
+  }
+
+  return (
+    <>
+      {childrenIds.map(id => {
+        const child = allComponents.find(c => c.id === id);
+        if (!child) return null;
+        return (
+          <ComponentRenderer
+            key={id}
+            component={child}
+            allComponents={allComponents}
+            isEditing={isEditing}
+            deviceMode={deviceMode}
+          />
+        );
+      })}
+    </>
+  );
+}
+
+function BoxRenderer(props: any) {
+  const getResponsiveProp = (baseKey: string) => {
+    if (props.deviceMode === 'desktop') return props[baseKey];
+    return props[`${baseKey}_${props.deviceMode}`] || props[baseKey];
+  };
+
+  return (
+    <div
+      className="w-full h-full"
+      style={{ gap: getResponsiveProp('gap') }}
+    >
+      <RecursiveRenderer
+        childrenIds={props.children}
+        allComponents={props.allComponents}
+        isEditing={props.isEditing}
+        deviceMode={props.deviceMode}
+      />
+    </div>
+  );
+}
+
+function FlexRenderer(props: any) {
+  const getResponsiveProp = (baseKey: string) => {
+    if (props.deviceMode === 'desktop') return props[baseKey];
+    return props[`${baseKey}_${props.deviceMode}`] || props[baseKey];
+  };
+
+  const alignMap = {
+    start: 'items-start',
+    center: 'items-center',
+    end: 'items-end',
+    stretch: 'items-stretch',
+  };
+
+  const justifyMap = {
+    start: 'justify-start',
+    center: 'justify-center',
+    end: 'justify-end',
+    between: 'justify-between',
+    around: 'justify-around',
+    evenly: 'justify-evenly',
+  };
+
+  return (
+    <div
+      className={cn(
+        "flex w-full h-full",
+        props.direction === 'column' ? 'flex-col' : 'flex-row',
+        alignMap[props.align as keyof typeof alignMap] || 'items-stretch',
+        justifyMap[props.justify as keyof typeof justifyMap] || 'justify-start',
+        props.wrap === 'wrap' ? 'flex-wrap' : props.wrap === 'wrap-reverse' ? 'flex-wrap-reverse' : 'flex-nowrap'
+      )}
+      style={{ gap: getResponsiveProp('gap') }}
+    >
+      <RecursiveRenderer
+        childrenIds={props.children}
+        allComponents={props.allComponents}
+        isEditing={props.isEditing}
+        deviceMode={props.deviceMode}
+      />
+    </div>
+  );
+}
+
+function GridRenderer(props: any) {
+  const getResponsiveProp = (baseKey: string) => {
+    if (props.deviceMode === 'desktop') return props[baseKey];
+    return props[`${baseKey}_${props.deviceMode}`] || props[baseKey];
+  };
+
+  return (
+    <div
+      className="grid w-full h-full"
+      style={{
+        gridTemplateColumns: props.columns,
+        gridTemplateRows: props.rows,
+        gap: getResponsiveProp('gap'),
+      }}
+    >
+      <RecursiveRenderer
+        childrenIds={props.children}
+        allComponents={props.allComponents}
+        isEditing={props.isEditing}
+        deviceMode={props.deviceMode}
+      />
+    </div>
+  );
+}
+
+function PrimitiveTextRenderer(props: any) {
+  return (
+    <div
+      style={{
+        color: props.color,
+        fontSize: props.fontSize,
+        fontWeight: props.fontWeight,
+        textAlign: props.textAlign,
+        lineHeight: props.lineHeight,
+      }}
+    >
+      {props.content}
+      <RecursiveRenderer
+        childrenIds={props.children}
+        allComponents={props.allComponents}
+        isEditing={props.isEditing}
+        deviceMode={props.deviceMode}
+      />
+    </div>
+  );
+}
+
+function ImageBasicRenderer(props: any) {
+  return (
+    <div className="relative w-full h-full overflow-hidden">
+      <img
+        src={props.src}
+        alt={props.alt || ""}
+        className="w-full h-full"
+        style={{ objectFit: props.objectFit || 'cover' }}
+      />
+      <div className="absolute inset-0">
+        <RecursiveRenderer
+          childrenIds={props.children}
+          allComponents={props.allComponents}
+          isEditing={props.isEditing}
+          deviceMode={props.deviceMode}
+        />
+      </div>
+    </div>
+  );
+}
+
+function ButtonBasicRenderer(props: any) {
+  const content = (
+    <>
+      {props.text}
+      <RecursiveRenderer
+        childrenIds={props.children}
+        allComponents={props.allComponents}
+        isEditing={props.isEditing}
+        deviceMode={props.deviceMode}
+      />
+    </>
+  );
+
+  if (props.url && !props.isEditing) {
+    return (
+      <a href={props.url} className="inline-block w-full h-full text-center no-underline">
+        {content}
+      </a>
+    );
+  }
+
+  return (
+    <button className="w-full h-full border-none bg-transparent p-0 m-0 cursor-pointer text-inherit font-inherit">
+      {content}
+    </button>
+  );
 }
 
 // ============= Individual Renderers =============

@@ -33,6 +33,85 @@ export function getAllPresets() {
 // Component categories with presets
 export const COMPONENT_CATEGORIES: ComponentCategory[] = [
   {
+    id: 'primitives',
+    name: 'Primitives',
+    icon: '🧱',
+    components: [
+      {
+        type: 'box',
+        name: 'Box',
+        description: 'Basic container for layout and grouping',
+        icon: '📦',
+        defaultProps: {
+          padding: '20px',
+          background: 'transparent',
+          children: [],
+        },
+      },
+      {
+        type: 'flex',
+        name: 'Flex',
+        description: 'Flexible layout container',
+        icon: '↔️',
+        defaultProps: {
+          direction: 'row',
+          align: 'center',
+          justify: 'start',
+          gap: '10px',
+          children: [],
+        },
+      },
+      {
+        type: 'grid',
+        name: 'Grid',
+        description: 'Grid-based layout container',
+        icon: '▦',
+        defaultProps: {
+          columns: 'repeat(2, minmax(0, 1fr))',
+          gap: '10px',
+          children: [],
+        },
+      },
+      {
+        type: 'text',
+        name: 'Text (Basic)',
+        description: 'Basic text component with custom styling',
+        icon: 'Aa',
+        defaultProps: {
+          content: 'Basic text content',
+          fontSize: '16px',
+          children: [],
+        },
+      },
+      {
+        type: 'image-basic',
+        name: 'Image (Basic)',
+        description: 'Simple image component',
+        icon: '🖼️',
+        defaultProps: {
+          src: 'https://images.unsplash.com/photo-1618005182384-a83a8bd57fbe?w=400',
+          alt: 'Primitive image',
+          objectFit: 'cover',
+          width: '100%',
+          height: '200px',
+        },
+      },
+      {
+        type: 'button-basic',
+        name: 'Button (Basic)',
+        description: 'Simple customizable button',
+        icon: '🔘',
+        defaultProps: {
+          text: 'Primitive Button',
+          padding: '10px 20px',
+          background: 'var(--primary)',
+          color: 'white',
+          border: 'none',
+        },
+      },
+    ],
+  },
+  {
     id: 'layout',
     name: 'Layout',
     icon: '📐',

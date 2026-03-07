@@ -201,6 +201,14 @@ export function ComponentPropsEditor({
                           onChange={(e) => updateProp(deviceMode === 'desktop' ? 'margin' : `margin_${deviceMode}`, e.target.value)}
                         />
                       </PropField>
+                      <PropField label="Gap">
+                        <Input
+                          type="text"
+                          placeholder="e.g. 10px"
+                          value={deviceMode === 'desktop' ? (component.props as any).gap || '' : (component.props as any)[`gap_${deviceMode}`] || (component.props as any).gap || ''}
+                          onChange={(e) => updateProp(deviceMode === 'desktop' ? 'gap' : `gap_${deviceMode}`, e.target.value)}
+                        />
+                      </PropField>
                     </div>
                   </div>
 
@@ -209,6 +217,22 @@ export function ComponentPropsEditor({
                   <div className="space-y-4">
                     <h4 className="text-xs font-semibold uppercase tracking-wider text-muted-foreground">Layout</h4>
                     <div className="grid grid-cols-2 gap-4">
+                      <PropField label="Width">
+                        <Input
+                          type="text"
+                          placeholder="e.g. 100%"
+                          value={deviceMode === 'desktop' ? (component.props as any).width || '' : (component.props as any)[`width_${deviceMode}`] || (component.props as any).width || ''}
+                          onChange={(e) => updateProp(deviceMode === 'desktop' ? 'width' : `width_${deviceMode}`, e.target.value)}
+                        />
+                      </PropField>
+                      <PropField label="Height">
+                        <Input
+                          type="text"
+                          placeholder="e.g. auto"
+                          value={deviceMode === 'desktop' ? (component.props as any).height || '' : (component.props as any)[`height_${deviceMode}`] || (component.props as any).height || ''}
+                          onChange={(e) => updateProp(deviceMode === 'desktop' ? 'height' : `height_${deviceMode}`, e.target.value)}
+                        />
+                      </PropField>
                       <PropField label="Z-Index">
                         <Input
                           type="number"
@@ -229,6 +253,28 @@ export function ComponentPropsEditor({
                         </div>
                       </PropField>
                     </div>
+                  </div>
+
+                  <Separator />
+
+                  <div className="space-y-4">
+                    <h4 className="text-xs font-semibold uppercase tracking-wider text-muted-foreground">Style</h4>
+                    <PropField label="Background">
+                      <Input
+                        type="text"
+                        placeholder="e.g. #ffffff or url(...)"
+                        value={(component.props as any).background || ''}
+                        onChange={(e) => updateProp('background', e.target.value)}
+                      />
+                    </PropField>
+                    <PropField label="Border">
+                      <Input
+                        type="text"
+                        placeholder="e.g. 1px solid black"
+                        value={(component.props as any).border || ''}
+                        onChange={(e) => updateProp('border', e.target.value)}
+                      />
+                    </PropField>
                   </div>
 
                   <Separator />
@@ -626,6 +672,60 @@ function renderPropsEditor(
       );
 
     case 'text':
+      // Handle Primitive Text
+      if (props.content !== undefined && props.fontSize !== undefined && typeof props.fontSize === 'string' && !['small', 'medium', 'large'].includes(props.fontSize)) {
+        return (
+          <div className="space-y-4">
+            <PropField label="Content">
+              <Textarea
+                value={props.content as string}
+                onChange={(e) => updateProp('content', e.target.value)}
+                rows={4}
+              />
+            </PropField>
+            <PropField label="Font Size (CSS)">
+              <Input
+                value={props.fontSize as string}
+                onChange={(e) => updateProp('fontSize', e.target.value)}
+                placeholder="e.g. 1.5rem"
+              />
+            </PropField>
+            <PropField label="Font Weight">
+              <Input
+                value={props.fontWeight as string || ''}
+                onChange={(e) => updateProp('fontWeight', e.target.value)}
+                placeholder="e.g. 600"
+              />
+            </PropField>
+            <PropField label="Color">
+              <Input
+                type="text"
+                value={props.color as string || ''}
+                onChange={(e) => updateProp('color', e.target.value)}
+                placeholder="e.g. #ff0000"
+              />
+            </PropField>
+            <PropField label="Alignment">
+              <Select value={props.textAlign as string || 'left'} onValueChange={(v) => updateProp('textAlign', v)}>
+                <SelectTrigger><SelectValue /></SelectTrigger>
+                <SelectContent>
+                  <SelectItem value="left">Left</SelectItem>
+                  <SelectItem value="center">Center</SelectItem>
+                  <SelectItem value="right">Right</SelectItem>
+                  <SelectItem value="justify">Justify</SelectItem>
+                </SelectContent>
+              </Select>
+            </PropField>
+            <PropField label="Line Height">
+              <Input
+                value={props.lineHeight as string || ''}
+                onChange={(e) => updateProp('lineHeight', e.target.value)}
+                placeholder="e.g. 1.5"
+              />
+            </PropField>
+          </div>
+        );
+      }
       return (
         <>
           <PropField label="Content">
@@ -899,6 +999,136 @@ function renderPropsEditor(
             </Select>
           </PropField>
         </>
+      );
+
+    case 'box':
+      return (
+        <div className="space-y-4">
+          <p className="text-xs text-muted-foreground">
+            Box is a generic container. Use the <strong>Advanced</strong> tab to control its layout, spacing, and background.
+          </p>
+          <div className="flex items-center justify-between">
+            <Label className="text-xs font-bold uppercase tracking-wider text-muted-foreground">Children</Label>
+            <span className="text-[10px] text-muted-foreground">{(props.children as string[])?.length || 0} items</span>
+          </div>
+        </div>
+      );
+
+    case 'flex':
+      return (
+        <div className="space-y-4">
+          <PropField label="Direction">
+            <Select value={props.direction as string || 'row'} onValueChange={(v) => updateProp('direction', v)}>
+              <SelectTrigger><SelectValue /></SelectTrigger>
+              <SelectContent>
+                <SelectItem value="row">Row (Horizontal)</SelectItem>
+                <SelectItem value="column">Column (Vertical)</SelectItem>
+              </SelectContent>
+            </Select>
+          </PropField>
+          <PropField label="Align Items">
+            <Select value={props.align as string || 'stretch'} onValueChange={(v) => updateProp('align', v)}>
+              <SelectTrigger><SelectValue /></SelectTrigger>
+              <SelectContent>
+                <SelectItem value="start">Start</SelectItem>
+                <SelectItem value="center">Center</SelectItem>
+                <SelectItem value="end">End</SelectItem>
+                <SelectItem value="stretch">Stretch</SelectItem>
+              </SelectContent>
+            </Select>
+          </PropField>
+          <PropField label="Justify Content">
+            <Select value={props.justify as string || 'start'} onValueChange={(v) => updateProp('justify', v)}>
+              <SelectTrigger><SelectValue /></SelectTrigger>
+              <SelectContent>
+                <SelectItem value="start">Start</SelectItem>
+                <SelectItem value="center">Center</SelectItem>
+                <SelectItem value="end">End</SelectItem>
+                <SelectItem value="between">Space Between</SelectItem>
+                <SelectItem value="around">Space Around</SelectItem>
+                <SelectItem value="evenly">Space Evenly</SelectItem>
+              </SelectContent>
+            </Select>
+          </PropField>
+          <PropField label="Wrap">
+            <Select value={props.wrap as string || 'nowrap'} onValueChange={(v) => updateProp('wrap', v)}>
+              <SelectTrigger><SelectValue /></SelectTrigger>
+              <SelectContent>
+                <SelectItem value="nowrap">No Wrap</SelectItem>
+                <SelectItem value="wrap">Wrap</SelectItem>
+                <SelectItem value="wrap-reverse">Wrap Reverse</SelectItem>
+              </SelectContent>
+            </Select>
+          </PropField>
+        </div>
+      );
+
+    case 'grid':
+      return (
+        <div className="space-y-4">
+          <PropField label="Columns (CSS Grid)">
+            <Input
+              value={props.columns as string || ''}
+              onChange={(e) => updateProp('columns', e.target.value)}
+              placeholder="e.g. repeat(3, 1fr)"
+            />
+          </PropField>
+          <PropField label="Rows (CSS Grid)">
+            <Input
+              value={props.rows as string || ''}
+              onChange={(e) => updateProp('rows', e.target.value)}
+              placeholder="e.g. auto"
+            />
+          </PropField>
+        </div>
+      );
+
+    case 'image-basic':
+      return (
+        <div className="space-y-4">
+          <PropField label="Source URL">
+            <Input
+              value={props.src as string || ''}
+              onChange={(e) => updateProp('src', e.target.value)}
+            />
+          </PropField>
+          <PropField label="Alt Text">
+            <Input
+              value={props.alt as string || ''}
+              onChange={(e) => updateProp('alt', e.target.value)}
+            />
+          </PropField>
+          <PropField label="Object Fit">
+            <Select value={props.objectFit as string || 'cover'} onValueChange={(v) => updateProp('objectFit', v)}>
+              <SelectTrigger><SelectValue /></SelectTrigger>
+              <SelectContent>
+                <SelectItem value="cover">Cover</SelectItem>
+                <SelectItem value="contain">Contain</SelectItem>
+                <SelectItem value="fill">Fill</SelectItem>
+                <SelectItem value="none">None</SelectItem>
+                <SelectItem value="scale-down">Scale Down</SelectItem>
+              </SelectContent>
+            </Select>
+          </PropField>
+        </div>
+      );
+
+    case 'button-basic':
+      return (
+        <div className="space-y-4">
+          <PropField label="Button Text">
+            <Input
+              value={props.text as string || ''}
+              onChange={(e) => updateProp('text', e.target.value)}
+            />
+          </PropField>
+          <PropField label="URL (Optional)">
+            <Input
+              value={props.url as string || ''}
+              onChange={(e) => updateProp('url', e.target.value)}
+            />
+          </PropField>
+        </div>
       );
 
     case 'pricing':

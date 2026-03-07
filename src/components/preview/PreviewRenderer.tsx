@@ -36,12 +36,13 @@ export function PreviewRenderer({ template, data }: PreviewRendererProps) {
         )}
         <div className="custom-builder-content">
           {pageComponents
-            .filter(c => c.visible)
+            .filter(c => c.visible && !pageComponents.some(p => (p.props as any).children?.includes(c.id)))
             .sort((a, b) => a.order - b.order)
             .map(component => (
               <ComponentRenderer
                 key={component.id}
                 component={component}
+                allComponents={pageComponents}
                 isEditing={false}
                 isSelected={false}
               />

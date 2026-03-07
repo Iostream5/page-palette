@@ -26,6 +26,12 @@ export type PageComponentType =
   | 'bento-grid'
   | 'process-steps'
   | 'logo-cloud'
+  // Primitive Components
+  | 'box'
+  | 'flex'
+  | 'grid'
+  | 'image-basic'
+  | 'button-basic'
   // New Layout Components
   | 'layout-section'
   | 'layout-container'
@@ -341,6 +347,87 @@ export interface LogoCloudComponent extends PageComponentBase {
   };
 }
 
+// Primitive Components
+export interface PrimitiveStyleProps {
+  margin?: string;
+  padding?: string;
+  gap?: string;
+  width?: string;
+  height?: string;
+  background?: string;
+  border?: string;
+  // Responsive overrides
+  margin_tablet?: string;
+  margin_mobile?: string;
+  padding_tablet?: string;
+  padding_mobile?: string;
+  gap_tablet?: string;
+  gap_mobile?: string;
+  width_tablet?: string;
+  width_mobile?: string;
+  height_tablet?: string;
+  height_mobile?: string;
+}
+
+export interface BoxComponent extends PageComponentBase {
+  type: 'box';
+  props: PrimitiveStyleProps & {
+    children?: string[];
+  };
+}
+
+export interface FlexComponent extends PageComponentBase {
+  type: 'flex';
+  props: PrimitiveStyleProps & {
+    direction?: 'row' | 'column';
+    align?: 'start' | 'center' | 'end' | 'stretch';
+    justify?: 'start' | 'center' | 'end' | 'between' | 'around' | 'evenly';
+    wrap?: 'nowrap' | 'wrap' | 'wrap-reverse';
+    children?: string[];
+  };
+}
+
+export interface GridComponent extends PageComponentBase {
+  type: 'grid';
+  props: PrimitiveStyleProps & {
+    columns?: string;
+    rows?: string;
+    children?: string[];
+  };
+}
+
+export interface PrimitiveTextComponent extends PageComponentBase {
+  type: 'text';
+  props: PrimitiveStyleProps & {
+    content: string;
+    color?: string;
+    fontSize?: string;
+    fontWeight?: string;
+    textAlign?: 'left' | 'center' | 'right' | 'justify';
+    lineHeight?: string;
+    children?: string[];
+  };
+}
+
+export interface ImageBasicComponent extends PageComponentBase {
+  type: 'image-basic';
+  props: PrimitiveStyleProps & {
+    src: string;
+    alt?: string;
+    objectFit?: 'cover' | 'contain' | 'fill' | 'none' | 'scale-down';
+    children?: string[];
+  };
+}
+
+export interface ButtonBasicComponent extends PageComponentBase {
+  type: 'button-basic';
+  props: PrimitiveStyleProps & {
+    text: string;
+    url?: string;
+    children?: string[];
+  };
+}
+
 // Layout Components
 export interface LayoutSectionComponent extends PageComponentBase {
   type: 'layout-section';
@@ -513,7 +600,13 @@ export type PageComponent =
   | FormInputComponent
   | FormCheckboxComponent
   | FormSwitchComponent
-  | FormSliderComponent;
+  | FormSliderComponent
+  | BoxComponent
+  | FlexComponent
+  | GridComponent
+  | PrimitiveTextComponent
+  | ImageBasicComponent
+  | ButtonBasicComponent;
 
 // Component category for organizing the library
 export interface ComponentCategory {

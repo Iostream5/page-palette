@@ -90,7 +90,12 @@ export function PageCanvas({
     handleReorder(updated);
   };
 
-  const sortedComponents = [...components].sort((a, b) => a.order - b.order);
+  // Only render components that are NOT children of another component
+  const rootComponents = components.filter(comp =>
+    !components.some(c => (c.props as any).children?.includes(comp.id))
+  );
+
+  const sortedComponents = [...rootComponents].sort((a, b) => a.order - b.order);
 
   if (components.length === 0) {
     return (
@@ -222,6 +227,7 @@ export function PageCanvas({
                 <div className={cn(!component.visible && 'pointer-events-none')}>
                   <ComponentRenderer
                     component={component}
+                    allComponents={components}
                     isEditing={isEditing}
                     isSelected={selectedComponentId === component.id}
                     deviceMode={deviceMode}
