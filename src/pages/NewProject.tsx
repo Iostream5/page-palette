@@ -26,14 +26,6 @@ export default function NewProject() {
   const handleCategorySelect = async (category: TemplateCategory) => {
     setSelectedCategory(category);
     setSelectedTemplate(null);
-    
-    // For custom category, skip template selection and create project directly
-    if (category === 'custom') {
-      setStep('name');
-      setProjectName('My Custom Page');
-      return;
-    }
-    
     setStep('template');
   };
 
@@ -66,7 +58,7 @@ export default function NewProject() {
           templateId: customTemplate.id,
           category: selectedCategory,
           name: projectName.trim(),
-          data: { pageComponents: [] },
+          data: customTemplate.default_data || { pageComponents: [] },
         });
         toast.success('Project created!');
         navigate(`/edit/${project.id}`);
@@ -233,6 +225,7 @@ export default function NewProject() {
                         {template.category === 'linktree' && '🔗'}
                         {template.category === 'gallery' && '🖼️'}
                         {template.category === 'letter' && '📝'}
+                        {template.category === 'custom' && '🎨'}
                       </span>
                     </div>
                     <h3 className="font-semibold text-foreground">{template.name}</h3>
