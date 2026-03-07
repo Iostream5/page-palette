@@ -1,6 +1,7 @@
 import { useState, useEffect, useCallback } from 'react';
 import { useParams, useNavigate } from 'react-router-dom';
 import { useProject, useUpdateProject } from '@/hooks/useProjects';
+import { BrandKit } from '@/types/builder';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
@@ -18,6 +19,10 @@ import {
   LayoutGrid,
   Settings,
   Download,
+  Palette,
+  Monitor,
+  Smartphone,
+  Tablet,
 } from 'lucide-react';
 import {
   Dialog,
@@ -30,6 +35,7 @@ import {
 import { EditorForm } from '@/components/editor/EditorForm';
 import { PreviewRenderer } from '@/components/preview/PreviewRenderer';
 import { ComponentLibrary } from '@/components/editor/ComponentLibrary';
+import { BrandKitControls } from '@/components/editor/BrandKitControls';
 import { PageCanvas } from '@/components/editor/PageCanvas';
 import { ComponentPropsEditor } from '@/components/editor/ComponentPropsEditor';
 import { ExportDialog } from '@/components/editor/ExportDialog';
@@ -42,13 +48,15 @@ export default function Editor() {
   const { data: project, isLoading } = useProject(id!);
   const updateProject = useUpdateProject();
 
-  const [data, setData] = useState<Record<string, unknown>>({});
+  const [data, setData] = useState<Record<string, any>>({});
   const [projectName, setProjectName] = useState('');
   const [slug, setSlug] = useState('');
   const [isSaving, setIsSaving] = useState(false);
   const [hasChanges, setHasChanges] = useState(false);
   const [publishDialogOpen, setPublishDialogOpen] = useState(false);
   const [copied, setCopied] = useState(false);
+  const [deviceMode, setDeviceMode] = useState<'desktop' | 'tablet' | 'mobile'>('desktop');
+  const [activeTab, setActiveTab] = useState<'components' | 'styles'>('components');
   
   // Component Library state
   const [pageComponents, setPageComponents] = useState<PageComponent[]>([]);
@@ -127,6 +135,24 @@ export default function Editor() {
 
   // Get selected component
   const selectedComponent = pageComponents.find(c => c.id === selectedComponentId);
+
+  // Generate CSS Variables for Global Styles
+  const globalStyles = data.brandKit ? (
+    <style>
+      {`
+        :root {
+          ${data.brandKit.primaryColor ? `--primary: ${data.brandKit.primaryColor};` : ''}
+          ${data.brandKit.secondaryColor ? `--secondary: ${data.brandKit.secondaryColor};` : ''}
+          ${data.brandKit.accentColor ? `--accent: ${data.brandKit.accentColor};` : ''}
+          ${data.brandKit.fontFamily ? `--font-body: ${data.brandKit.fontFamily};` : ''}
+        }
+        .custom-builder-canvas {
+          ${data.brandKit.fontFamily ? `font-family: ${data.brandKit.fontFamily};` : ''}
+        }
+        ${data.brandKit.customCSS || ''}
+      `}
+    </style>
+  ) : null;
 
   // Autosave with debounce
   useEffect(() => {
@@ -247,6 +273,38 @@ export default function Editor() {
             />
           </div>
         </div>
+
+        {/* Responsive Toggles */}
+        <div className="hidden items-center rounded-lg border border-border bg-muted/50 p-1 md:flex">
+          <Button
+            variant={deviceMode === 'desktop' ? 'secondary' : 'ghost'}
+            size="icon"
+            className="h-8 w-8"
+            onClick={() => setDeviceMode('desktop')}
+            title="Desktop View"
+          >
+            <Monitor className="h-4 w-4" />
+          </Button>
+          <Button
+            variant={deviceMode === 'tablet' ? 'secondary' : 'ghost'}
+            size="icon"
+            className="h-8 w-8"
+            onClick={() => setDeviceMode('tablet')}
+            title="Tablet View"
+          >
+            <Tablet className="h-4 w-4" />
+          </Button>
+          <Button
+            variant={deviceMode === 'mobile' ? 'secondary' : 'ghost'}
+            size="icon"
+            className="h-8 w-8"
+            onClick={() => setDeviceMode('mobile')}
+            title="Mobile View"
+          >
+            <Smartphone className="h-4 w-4" />
+          </Button>
+        </div>
+
         <div className="flex items-center gap-2">
           {hasChanges && (
             <span className="text-xs text-muted-foreground">Unsaved changes</span>
@@ -344,19 +402,52 @@ export default function Editor() {
       {/* Left Panel */}
         <div className="w-96 flex-shrink-0 border-r border-border overflow-hidden flex flex-col">
           {isCustomProject ? (
-            // Custom project - component library only
+            // Custom project - tabs for Components and Global Styles
             <div className="flex-1 flex flex-col overflow-hidden">
-              <div className="border-b border-border p-3">
-                <div className="flex items-center gap-2 text-sm font-medium">
+              <div className="flex border-b border-border">
+                <button
+                  onClick={() => setActiveTab('components')}
+                  className={cn(
+                    "flex flex-1 items-center justify-center gap-2 py-3 text-sm font-medium transition-colors hover:bg-muted/50",
+                    activeTab === 'components'
+                      ? "border-b-2 border-primary text-primary"
+                      : "text-muted-foreground"
+                  )}
+                >
                   <LayoutGrid className="h-4 w-4" />
-                  Component Library
-                </div>
+                  Components
+                </button>
+                <button
+                  onClick={() => setActiveTab('styles')}
+                  className={cn(
+                    "flex flex-1 items-center justify-center gap-2 py-3 text-sm font-medium transition-colors hover:bg-muted/50",
+                    activeTab === 'styles'
+                      ? "border-b-2 border-primary text-primary"
+                      : "text-muted-foreground"
+                  )}
+                >
+                  <Palette className="h-4 w-4" />
+                  Global Styles
+                </button>
               </div>
+
               <div className="flex-1 overflow-hidden">
-                <ComponentLibrary
-                  onAddComponent={handleAddComponent}
-                  existingComponentCount={pageComponents.length}
-                />
+                {activeTab === 'components' ? (
+                  <ComponentLibrary
+                    onAddComponent={handleAddComponent}
+                    existingComponentCount={pageComponents.length}
+                  />
+                ) : (
+                  <div className="h-full overflow-auto p-4">
+                    <BrandKitControls
+                      brandKit={(data.brandKit as BrandKit) || {}}
+                      onChange={(brandKit) => {
+                        setData(prev => ({ ...prev, brandKit }));
+                        setHasChanges(true);
+                      }}
+                    />
+                  </div>
+                )}
               </div>
             </div>
           ) : (
@@ -379,18 +470,29 @@ export default function Editor() {
           <>
             {/* Center - Page Canvas */}
             <div className="flex-1 overflow-auto bg-muted/30 border-r border-border">
+              {globalStyles}
               <div className="p-4">
                 <div className="mb-2 flex items-center gap-2 text-sm text-muted-foreground">
                   <LayoutGrid className="h-4 w-4" />
                   Page Builder
                 </div>
-                <div className="min-h-[calc(100vh-12rem)] rounded-lg border border-border bg-background shadow-sm">
-                  <PageCanvas
-                    components={pageComponents}
-                    onComponentsChange={handleComponentsChange}
-                    onSelectComponent={setSelectedComponentId}
-                    selectedComponentId={selectedComponentId}
-                  />
+                <div
+                  className={cn(
+                    "mx-auto min-h-[calc(100vh-12rem)] rounded-lg border border-border bg-background shadow-sm transition-all duration-300",
+                    deviceMode === 'desktop' && 'w-full',
+                    deviceMode === 'tablet' && 'w-[768px]',
+                    deviceMode === 'mobile' && 'w-[375px]'
+                  )}
+                >
+                  <div className="custom-builder-canvas h-full">
+                    <PageCanvas
+                      components={pageComponents}
+                      onComponentsChange={handleComponentsChange}
+                      onSelectComponent={setSelectedComponentId}
+                      selectedComponentId={selectedComponentId}
+                      deviceMode={deviceMode}
+                    />
+                  </div>
                 </div>
               </div>
             </div>
@@ -410,12 +512,19 @@ export default function Editor() {
           </>
         ) : (
           // Template project - preview only
-          <div className="flex-1 overflow-auto p-4">
+          <div className="flex-1 overflow-auto p-4 bg-muted/30">
             <div className="mb-2 flex items-center gap-2 text-sm text-muted-foreground">
               <Eye className="h-4 w-4" />
               Preview
             </div>
-            <div className="h-[calc(100%-2rem)] overflow-auto rounded-lg border border-border bg-white shadow-lg">
+            <div
+              className={cn(
+                "mx-auto min-h-[calc(100vh-12rem)] overflow-auto rounded-lg border border-border bg-white shadow-lg transition-all duration-300",
+                deviceMode === 'desktop' && 'w-full',
+                deviceMode === 'tablet' && 'w-[768px]',
+                deviceMode === 'mobile' && 'w-[375px]'
+              )}
+            >
               <PreviewRenderer template={project.template!} data={data} />
             </div>
           </div>
