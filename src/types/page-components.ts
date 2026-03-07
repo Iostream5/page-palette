@@ -25,7 +25,24 @@ export type PageComponentType =
   | 'marquee'
   | 'bento-grid'
   | 'process-steps'
-  | 'logo-cloud';
+  | 'logo-cloud'
+  // New Layout Components
+  | 'layout-section'
+  | 'layout-container'
+  | 'layout-stack'
+  // New Content Components
+  | 'content-paragraph'
+  | 'content-badge'
+  | 'content-avatar'
+  // New UI Components
+  | 'ui-tabs'
+  | 'ui-carousel'
+  | 'ui-breadcrumb'
+  // New Form Components
+  | 'form-input'
+  | 'form-checkbox'
+  | 'form-switch'
+  | 'form-slider';
 
 export interface PageComponentBase {
   id: string;
@@ -324,6 +341,140 @@ export interface LogoCloudComponent extends PageComponentBase {
   };
 }
 
+// Layout Components
+export interface LayoutSectionComponent extends PageComponentBase {
+  type: 'layout-section';
+  props: {
+    backgroundColor?: string;
+    backgroundImage?: string;
+    padding: string;
+    fullWidth: boolean;
+    children?: string[]; // IDs of children components
+  };
+}
+
+export interface LayoutContainerComponent extends PageComponentBase {
+  type: 'layout-container';
+  props: {
+    maxWidth: 'sm' | 'md' | 'lg' | 'xl' | 'full';
+    padding: string;
+  };
+}
+
+export interface LayoutStackComponent extends PageComponentBase {
+  type: 'layout-stack';
+  props: {
+    direction: 'vertical' | 'horizontal';
+    gap: string;
+    align: 'start' | 'center' | 'end' | 'stretch';
+    justify: 'start' | 'center' | 'end' | 'between';
+  };
+}
+
+// Content Components
+export interface ContentParagraphComponent extends PageComponentBase {
+  type: 'content-paragraph';
+  props: {
+    text: string;
+    alignment: 'left' | 'center' | 'right' | 'justify';
+    color?: string;
+    fontSize: string;
+    lineHeight: string;
+  };
+}
+
+export interface ContentBadgeComponent extends PageComponentBase {
+  type: 'content-badge';
+  props: {
+    text: string;
+    variant: 'default' | 'secondary' | 'outline' | 'destructive';
+    size: 'sm' | 'md' | 'lg';
+  };
+}
+
+export interface ContentAvatarComponent extends PageComponentBase {
+  type: 'content-avatar';
+  props: {
+    src?: string;
+    fallback: string;
+    size: 'sm' | 'md' | 'lg' | 'xl';
+    shape: 'circle' | 'square';
+  };
+}
+
+// UI Components
+export interface UITabsComponent extends PageComponentBase {
+  type: 'ui-tabs';
+  props: {
+    items: Array<{
+      label: string;
+      content: string;
+    }>;
+    variant: 'default' | 'outline';
+  };
+}
+
+export interface UICarouselComponent extends PageComponentBase {
+  type: 'ui-carousel';
+  props: {
+    images: string[];
+    aspectRatio: string;
+    autoplay: boolean;
+    showArrows: boolean;
+    showDots: boolean;
+  };
+}
+
+export interface UIBreadcrumbComponent extends PageComponentBase {
+  type: 'ui-breadcrumb';
+  props: {
+    items: Array<{
+      label: string;
+      url: string;
+    }>;
+  };
+}
+
+// Form Components
+export interface FormInputComponent extends PageComponentBase {
+  type: 'form-input';
+  props: {
+    label: string;
+    placeholder: string;
+    type: 'text' | 'email' | 'password' | 'number' | 'tel';
+    required: boolean;
+    helpText?: string;
+  };
+}
+
+export interface FormCheckboxComponent extends PageComponentBase {
+  type: 'form-checkbox';
+  props: {
+    label: string;
+    checked: boolean;
+    required: boolean;
+  };
+}
+
+export interface FormSwitchComponent extends PageComponentBase {
+  type: 'form-switch';
+  props: {
+    label: string;
+    checked: boolean;
+  };
+}
+
+export interface FormSliderComponent extends PageComponentBase {
+  type: 'form-slider';
+  props: {
+    label: string;
+    min: number;
+    max: number;
+    step: number;
+    defaultValue: number;
+  };
+}
+
 export type PageComponent =
   | HeroComponent
   | HeadingComponent
@@ -349,7 +500,20 @@ export type PageComponent =
   | MarqueeComponent
   | BentoGridComponent
   | ProcessStepsComponent
-  | LogoCloudComponent;
+  | LogoCloudComponent
+  | LayoutSectionComponent
+  | LayoutContainerComponent
+  | LayoutStackComponent
+  | ContentParagraphComponent
+  | ContentBadgeComponent
+  | ContentAvatarComponent
+  | UITabsComponent
+  | UICarouselComponent
+  | UIBreadcrumbComponent
+  | FormInputComponent
+  | FormCheckboxComponent
+  | FormSwitchComponent
+  | FormSliderComponent;
 
 // Component category for organizing the library
 export interface ComponentCategory {

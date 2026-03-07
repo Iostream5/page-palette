@@ -1,7 +1,7 @@
 // Component Props Editor - Edit individual component properties
 import { useState } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
-import { X, Trash2, Eye, EyeOff, Copy, Settings2, Sliders, Play } from 'lucide-react';
+import { X, Trash2, Eye, EyeOff, Copy, Settings2, Sliders, Play, Plus } from 'lucide-react';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
 import { Textarea } from '@/components/ui/textarea';
@@ -1111,6 +1111,362 @@ function renderPropsEditor(
             </div>
           ))}
         </div>
+      );
+
+    case 'layout-section':
+      return (
+        <>
+          <PropField label="Background Color">
+            <Input type="color" value={props.backgroundColor as string || '#ffffff'} onChange={(e) => updateProp('backgroundColor', e.target.value)} />
+          </PropField>
+          <PropField label="Background Image URL">
+            <Input value={props.backgroundImage as string || ''} onChange={(e) => updateProp('backgroundImage', e.target.value)} />
+          </PropField>
+          <PropField label="Padding">
+            <Input value={props.padding as string} onChange={(e) => updateProp('padding', e.target.value)} />
+          </PropField>
+          <div className="flex items-center justify-between">
+            <Label className="text-xs">Full Width</Label>
+            <Switch checked={props.fullWidth as boolean} onCheckedChange={(v) => updateProp('fullWidth', v)} />
+          </div>
+        </>
+      );
+
+    case 'layout-container':
+      return (
+        <>
+          <PropField label="Max Width">
+            <Select value={props.maxWidth as string} onValueChange={(v) => updateProp('maxWidth', v)}>
+              <SelectTrigger><SelectValue /></SelectTrigger>
+              <SelectContent>
+                <SelectItem value="sm">Small</SelectItem>
+                <SelectItem value="md">Medium</SelectItem>
+                <SelectItem value="lg">Large</SelectItem>
+                <SelectItem value="xl">Extra Large</SelectItem>
+                <SelectItem value="full">Full</SelectItem>
+              </SelectContent>
+            </Select>
+          </PropField>
+          <PropField label="Padding">
+            <Input value={props.padding as string} onChange={(e) => updateProp('padding', e.target.value)} />
+          </PropField>
+        </>
+      );
+
+    case 'layout-stack':
+      return (
+        <>
+          <PropField label="Direction">
+            <Select value={props.direction as string} onValueChange={(v) => updateProp('direction', v)}>
+              <SelectTrigger><SelectValue /></SelectTrigger>
+              <SelectContent>
+                <SelectItem value="vertical">Vertical</SelectItem>
+                <SelectItem value="horizontal">Horizontal</SelectItem>
+              </SelectContent>
+            </Select>
+          </PropField>
+          <PropField label="Gap">
+            <Input value={props.gap as string} onChange={(e) => updateProp('gap', e.target.value)} placeholder="20px" />
+          </PropField>
+          <PropField label="Align">
+            <Select value={props.align as string} onValueChange={(v) => updateProp('align', v)}>
+              <SelectTrigger><SelectValue /></SelectTrigger>
+              <SelectContent>
+                <SelectItem value="start">Start</SelectItem>
+                <SelectItem value="center">Center</SelectItem>
+                <SelectItem value="end">End</SelectItem>
+                <SelectItem value="stretch">Stretch</SelectItem>
+              </SelectContent>
+            </Select>
+          </PropField>
+          <PropField label="Justify">
+            <Select value={props.justify as string} onValueChange={(v) => updateProp('justify', v)}>
+              <SelectTrigger><SelectValue /></SelectTrigger>
+              <SelectContent>
+                <SelectItem value="start">Start</SelectItem>
+                <SelectItem value="center">Center</SelectItem>
+                <SelectItem value="end">End</SelectItem>
+                <SelectItem value="between">Space Between</SelectItem>
+              </SelectContent>
+            </Select>
+          </PropField>
+        </>
+      );
+
+    case 'content-paragraph':
+      return (
+        <>
+          <PropField label="Text Content">
+            <Textarea value={props.text as string} onChange={(e) => updateProp('text', e.target.value)} rows={4} />
+          </PropField>
+          <PropField label="Font Size">
+            <Input value={props.fontSize as string} onChange={(e) => updateProp('fontSize', e.target.value)} placeholder="16px" />
+          </PropField>
+          <PropField label="Line Height">
+            <Input value={props.lineHeight as string} onChange={(e) => updateProp('lineHeight', e.target.value)} placeholder="1.6" />
+          </PropField>
+          <PropField label="Alignment">
+            <Select value={props.alignment as string} onValueChange={(v) => updateProp('alignment', v)}>
+              <SelectTrigger><SelectValue /></SelectTrigger>
+              <SelectContent>
+                <SelectItem value="left">Left</SelectItem>
+                <SelectItem value="center">Center</SelectItem>
+                <SelectItem value="right">Right</SelectItem>
+                <SelectItem value="justify">Justify</SelectItem>
+              </SelectContent>
+            </Select>
+          </PropField>
+          <PropField label="Color">
+            <Input type="color" value={props.color as string || '#000000'} onChange={(e) => updateProp('color', e.target.value)} />
+          </PropField>
+        </>
+      );
+
+    case 'content-badge':
+      return (
+        <>
+          <PropField label="Text">
+            <Input value={props.text as string} onChange={(e) => updateProp('text', e.target.value)} />
+          </PropField>
+          <PropField label="Variant">
+            <Select value={props.variant as string} onValueChange={(v) => updateProp('variant', v)}>
+              <SelectTrigger><SelectValue /></SelectTrigger>
+              <SelectContent>
+                <SelectItem value="default">Default</SelectItem>
+                <SelectItem value="secondary">Secondary</SelectItem>
+                <SelectItem value="outline">Outline</SelectItem>
+                <SelectItem value="destructive">Destructive</SelectItem>
+              </SelectContent>
+            </Select>
+          </PropField>
+          <PropField label="Size">
+            <Select value={props.size as string} onValueChange={(v) => updateProp('size', v)}>
+              <SelectTrigger><SelectValue /></SelectTrigger>
+              <SelectContent>
+                <SelectItem value="sm">Small</SelectItem>
+                <SelectItem value="md">Medium</SelectItem>
+                <SelectItem value="lg">Large</SelectItem>
+              </SelectContent>
+            </Select>
+          </PropField>
+        </>
+      );
+
+    case 'content-avatar':
+      return (
+        <>
+          <PropField label="Image URL">
+            <Input value={props.src as string || ''} onChange={(e) => updateProp('src', e.target.value)} />
+          </PropField>
+          <PropField label="Fallback Initials">
+            <Input value={props.fallback as string} onChange={(e) => updateProp('fallback', e.target.value)} maxLength={2} />
+          </PropField>
+          <PropField label="Size">
+            <Select value={props.size as string} onValueChange={(v) => updateProp('size', v)}>
+              <SelectTrigger><SelectValue /></SelectTrigger>
+              <SelectContent>
+                <SelectItem value="sm">Small</SelectItem>
+                <SelectItem value="md">Medium</SelectItem>
+                <SelectItem value="lg">Large</SelectItem>
+                <SelectItem value="xl">Extra Large</SelectItem>
+              </SelectContent>
+            </Select>
+          </PropField>
+          <PropField label="Shape">
+            <Select value={props.shape as string} onValueChange={(v) => updateProp('shape', v)}>
+              <SelectTrigger><SelectValue /></SelectTrigger>
+              <SelectContent>
+                <SelectItem value="circle">Circle</SelectItem>
+                <SelectItem value="square">Square</SelectItem>
+              </SelectContent>
+            </Select>
+          </PropField>
+        </>
+      );
+
+    case 'ui-tabs':
+      return (
+        <div className="space-y-4">
+          <div className="flex items-center justify-between">
+            <Label className="text-xs font-bold uppercase tracking-wider text-muted-foreground">Tabs</Label>
+            <Button size="sm" variant="outline" onClick={() => addArrayItem('items', { label: 'New Tab', content: 'Content' })}>
+              Add Tab
+            </Button>
+          </div>
+          {(props.items as any[] || []).map((item, i) => (
+            <div key={i} className="space-y-2 p-2 border border-border rounded bg-muted/30 relative group">
+              <Button size="icon" variant="ghost" className="h-6 w-6 absolute top-1 right-1 opacity-0 group-hover:opacity-100" onClick={() => removeArrayItem('items', i)}>
+                <Trash2 className="h-3 w-3" />
+              </Button>
+              <Input className="h-8 font-bold" value={item.label} onChange={(e) => updateArrayProp('items', i, 'label', e.target.value)} placeholder="Label" />
+              <Textarea className="text-xs" value={item.content} onChange={(e) => updateArrayProp('items', i, 'content', e.target.value)} placeholder="Content" rows={2} />
+            </div>
+          ))}
+          <PropField label="Variant">
+            <Select value={props.variant as string} onValueChange={(v) => updateProp('variant', v)}>
+              <SelectTrigger><SelectValue /></SelectTrigger>
+              <SelectContent>
+                <SelectItem value="default">Default</SelectItem>
+                <SelectItem value="outline">Outline</SelectItem>
+              </SelectContent>
+            </Select>
+          </PropField>
+        </div>
+      );
+
+    case 'ui-carousel':
+      return (
+        <div className="space-y-4">
+          <div className="flex items-center justify-between">
+            <Label className="text-xs font-bold uppercase tracking-wider text-muted-foreground">Images</Label>
+            <Button size="sm" variant="outline" onClick={() => updateProp('images', [...(props.images as string[]), ''])}>
+              Add Image
+            </Button>
+          </div>
+          {(props.images as string[] || []).map((img, i) => (
+            <div key={i} className="flex gap-2">
+              <Input
+                value={img}
+                onChange={(e) => {
+                  const newImages = [...(props.images as string[])];
+                  newImages[i] = e.target.value;
+                  updateProp('images', newImages);
+                }}
+                placeholder="Image URL"
+              />
+              <Button size="icon" variant="ghost" className="h-10 w-10 text-destructive" onClick={() => {
+                const newImages = [...(props.images as string[])];
+                newImages.splice(i, 1);
+                updateProp('images', newImages);
+              }}>
+                <Trash2 className="h-4 w-4" />
+              </Button>
+            </div>
+          ))}
+          <PropField label="Aspect Ratio">
+            <Select value={props.aspectRatio as string} onValueChange={(v) => updateProp('aspectRatio', v)}>
+              <SelectTrigger><SelectValue /></SelectTrigger>
+              <SelectContent>
+                <SelectItem value="aspect-video">Widescreen (16:9)</SelectItem>
+                <SelectItem value="aspect-square">Square (1:1)</SelectItem>
+                <SelectItem value="aspect-auto">Auto</SelectItem>
+              </SelectContent>
+            </Select>
+          </PropField>
+          <div className="flex items-center justify-between">
+            <Label className="text-xs">Autoplay</Label>
+            <Switch checked={props.autoplay as boolean} onCheckedChange={(v) => updateProp('autoplay', v)} />
+          </div>
+          <div className="flex items-center justify-between">
+            <Label className="text-xs">Show Arrows</Label>
+            <Switch checked={props.showArrows as boolean} onCheckedChange={(v) => updateProp('showArrows', v)} />
+          </div>
+        </div>
+      );
+
+    case 'ui-breadcrumb':
+      return (
+        <div className="space-y-4">
+          <div className="flex items-center justify-between">
+            <Label className="text-xs font-bold uppercase tracking-wider text-muted-foreground">Links</Label>
+            <Button size="sm" variant="outline" onClick={() => addArrayItem('items', { label: 'New Link', url: '#' })}>
+              Add Link
+            </Button>
+          </div>
+          {(props.items as any[] || []).map((item, i) => (
+            <div key={i} className="space-y-2 p-2 border border-border rounded bg-muted/30 relative group">
+              <Button size="icon" variant="ghost" className="h-6 w-6 absolute top-1 right-1 opacity-0 group-hover:opacity-100" onClick={() => removeArrayItem('items', i)}>
+                <Trash2 className="h-3 w-3" />
+              </Button>
+              <Input className="h-8" value={item.label} onChange={(e) => updateArrayProp('items', i, 'label', e.target.value)} placeholder="Label" />
+              <Input className="h-8" value={item.url} onChange={(e) => updateArrayProp('items', i, 'url', e.target.value)} placeholder="URL" />
+            </div>
+          ))}
+        </div>
+      );
+
+    case 'form-input':
+      return (
+        <>
+          <PropField label="Label">
+            <Input value={props.label as string} onChange={(e) => updateProp('label', e.target.value)} />
+          </PropField>
+          <PropField label="Placeholder">
+            <Input value={props.placeholder as string} onChange={(e) => updateProp('placeholder', e.target.value)} />
+          </PropField>
+          <PropField label="Type">
+            <Select value={props.type as string} onValueChange={(v) => updateProp('type', v)}>
+              <SelectTrigger><SelectValue /></SelectTrigger>
+              <SelectContent>
+                <SelectItem value="text">Text</SelectItem>
+                <SelectItem value="email">Email</SelectItem>
+                <SelectItem value="password">Password</SelectItem>
+                <SelectItem value="number">Number</SelectItem>
+                <SelectItem value="tel">Phone</SelectItem>
+              </SelectContent>
+            </Select>
+          </PropField>
+          <PropField label="Help Text (Optional)">
+            <Input value={props.helpText as string || ''} onChange={(e) => updateProp('helpText', e.target.value)} />
+          </PropField>
+          <div className="flex items-center justify-between">
+            <Label className="text-xs">Required</Label>
+            <Switch checked={props.required as boolean} onCheckedChange={(v) => updateProp('required', v)} />
+          </div>
+        </>
+      );
+
+    case 'form-checkbox':
+      return (
+        <>
+          <PropField label="Label">
+            <Input value={props.label as string} onChange={(e) => updateProp('label', e.target.value)} />
+          </PropField>
+          <div className="flex items-center justify-between">
+            <Label className="text-xs">Checked by Default</Label>
+            <Switch checked={props.checked as boolean} onCheckedChange={(v) => updateProp('checked', v)} />
+          </div>
+          <div className="flex items-center justify-between">
+            <Label className="text-xs">Required</Label>
+            <Switch checked={props.required as boolean} onCheckedChange={(v) => updateProp('required', v)} />
+          </div>
+        </>
+      );
+
+    case 'form-switch':
+      return (
+        <>
+          <PropField label="Label">
+            <Input value={props.label as string} onChange={(e) => updateProp('label', e.target.value)} />
+          </PropField>
+          <div className="flex items-center justify-between">
+            <Label className="text-xs">On by Default</Label>
+            <Switch checked={props.checked as boolean} onCheckedChange={(v) => updateProp('checked', v)} />
+          </div>
+        </>
+      );
+
+    case 'form-slider':
+      return (
+        <>
+          <PropField label="Label">
+            <Input value={props.label as string} onChange={(e) => updateProp('label', e.target.value)} />
+          </PropField>
+          <div className="grid grid-cols-2 gap-4">
+            <PropField label="Min">
+              <Input type="number" value={props.min as number} onChange={(e) => updateProp('min', parseInt(e.target.value))} />
+            </PropField>
+            <PropField label="Max">
+              <Input type="number" value={props.max as number} onChange={(e) => updateProp('max', parseInt(e.target.value))} />
+            </PropField>
+          </div>
+          <PropField label="Step">
+            <Input type="number" value={props.step as number} onChange={(e) => updateProp('step', parseInt(e.target.value))} />
+          </PropField>
+          <PropField label="Default Value">
+            <Input type="number" value={props.defaultValue as number} onChange={(e) => updateProp('defaultValue', parseInt(e.target.value))} />
+          </PropField>
+        </>
       );
 
     default:

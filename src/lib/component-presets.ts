@@ -53,6 +53,39 @@ export const COMPONENT_CATEGORIES: ComponentCategory[] = [
         },
       },
       {
+        type: 'layout-section',
+        name: 'Section Wrapper',
+        description: 'Large content area with background options',
+        icon: '🔲',
+        defaultProps: {
+          backgroundColor: '#ffffff',
+          padding: '80px 20px',
+          fullWidth: true,
+        },
+      },
+      {
+        type: 'layout-container',
+        name: 'Container',
+        description: 'Centered content wrapper with max width',
+        icon: '📦',
+        defaultProps: {
+          maxWidth: 'lg',
+          padding: '20px',
+        },
+      },
+      {
+        type: 'layout-stack',
+        name: 'Flex Stack',
+        description: 'Flexible layout for aligning children',
+        icon: '🥞',
+        defaultProps: {
+          direction: 'vertical',
+          gap: '20px',
+          align: 'stretch',
+          justify: 'start',
+        },
+      },
+      {
         type: 'spacer',
         name: 'Spacer',
         description: 'Add vertical spacing between components',
@@ -111,6 +144,40 @@ export const COMPONENT_CATEGORIES: ComponentCategory[] = [
           content: 'Add your text content here. You can write paragraphs, descriptions, or any other text information.',
           alignment: 'left',
           fontSize: 'medium',
+        },
+      },
+      {
+        type: 'content-paragraph',
+        name: 'Paragraph',
+        description: 'Detailed text block with custom styling',
+        icon: '📑',
+        defaultProps: {
+          text: 'Modern web design is all about clean aesthetics and smooth user experiences. Use this component to tell your story in a readable and elegant way.',
+          alignment: 'left',
+          fontSize: '16px',
+          lineHeight: '1.6',
+        },
+      },
+      {
+        type: 'content-badge',
+        name: 'Status Badge',
+        description: 'Small pill-style label for status or tags',
+        icon: '🏷️',
+        defaultProps: {
+          text: 'New Feature',
+          variant: 'default',
+          size: 'md',
+        },
+      },
+      {
+        type: 'content-avatar',
+        name: 'Avatar',
+        description: 'User profile image or fallback initials',
+        icon: '👤',
+        defaultProps: {
+          fallback: 'JD',
+          size: 'md',
+          shape: 'circle',
         },
       },
       {
@@ -174,6 +241,48 @@ export const COMPONENT_CATEGORIES: ComponentCategory[] = [
         },
       },
       {
+        type: 'ui-tabs',
+        name: 'Tab Switcher',
+        description: 'Toggle between different content sections',
+        icon: '🗂️',
+        defaultProps: {
+          items: [
+            { label: 'Tab 1', content: 'Content for the first tab goes here.' },
+            { label: 'Tab 2', content: 'Explore more details in the second tab.' },
+          ],
+          variant: 'default',
+        },
+      },
+      {
+        type: 'ui-carousel',
+        name: 'Image Slider',
+        description: 'Swipeable carousel for multiple images',
+        icon: '🎠',
+        defaultProps: {
+          images: [
+            'https://images.unsplash.com/photo-1618005182384-a83a8bd57fbe?w=800',
+            'https://images.unsplash.com/photo-1482933230644-40ff1577e02a?w=800',
+          ],
+          aspectRatio: 'aspect-video',
+          autoplay: true,
+          showArrows: true,
+          showDots: true,
+        },
+      },
+      {
+        type: 'ui-breadcrumb',
+        name: 'Breadcrumbs',
+        description: 'Navigation path for nested pages',
+        icon: '🍞',
+        defaultProps: {
+          items: [
+            { label: 'Home', url: '/' },
+            { label: 'Products', url: '/products' },
+            { label: 'Headphones', url: '#' },
+          ],
+        },
+      },
+      {
         type: 'cta',
         name: 'Call to Action',
         description: 'Highlight section with action button',
@@ -201,6 +310,59 @@ export const COMPONENT_CATEGORIES: ComponentCategory[] = [
           size: 'medium',
         },
       },
+    ],
+  },
+  {
+    id: 'forms',
+    name: 'Forms',
+    icon: '📋',
+    components: [
+      {
+        type: 'form-input',
+        name: 'Text Input',
+        description: 'Standard text field for forms',
+        icon: '⌨️',
+        defaultProps: {
+          label: 'Your Name',
+          placeholder: 'John Doe',
+          type: 'text',
+          required: true,
+        },
+      },
+      {
+        type: 'form-checkbox',
+        name: 'Checkbox',
+        description: 'Selection box for agreements',
+        icon: '☑️',
+        defaultProps: {
+          label: 'I agree to the terms and conditions',
+          checked: false,
+          required: true,
+        },
+      },
+      {
+        type: 'form-switch',
+        name: 'Toggle Switch',
+        description: 'On/off switch for settings',
+        icon: '🎚️',
+        defaultProps: {
+          label: 'Enable notifications',
+          checked: true,
+        },
+      },
+      {
+        type: 'form-slider',
+        name: 'Range Slider',
+        description: 'Draggable slider for numeric values',
+        icon: '↔️',
+        defaultProps: {
+          label: 'Budget Range',
+          min: 0,
+          max: 1000,
+          step: 50,
+          defaultValue: 500,
+        },
+      },
       {
         type: 'newsletter',
         name: 'Newsletter',
@@ -212,6 +374,21 @@ export const COMPONENT_CATEGORIES: ComponentCategory[] = [
           placeholder: 'Enter your email',
           buttonText: 'Subscribe',
           style: 'stacked',
+        },
+      },
+      {
+        type: 'contact-form',
+        name: 'Contact Form',
+        description: 'Simple contact form',
+        icon: '✉️',
+        defaultProps: {
+          title: 'Get in Touch',
+          fields: [
+            { name: 'name', type: 'text', required: true },
+            { name: 'email', type: 'email', required: true },
+            { name: 'message', type: 'textarea', required: true },
+          ],
+          submitText: 'Send Message',
         },
       },
     ],
@@ -375,42 +552,6 @@ export const COMPONENT_CATEGORIES: ComponentCategory[] = [
           buttonText: 'Beli Sekarang',
           badge: 'Best Seller',
           layout: 'card',
-        },
-      },
-    ],
-  },
-  {
-    id: 'forms',
-    name: 'Forms',
-    icon: '📋',
-    components: [
-      {
-        type: 'contact-form',
-        name: 'Contact Form',
-        description: 'Simple contact form',
-        icon: '✉️',
-        defaultProps: {
-          title: 'Get in Touch',
-          fields: [
-            { name: 'name', type: 'text', required: true },
-            { name: 'email', type: 'email', required: true },
-            { name: 'message', type: 'textarea', required: true },
-          ],
-          submitText: 'Send Message',
-        },
-      },
-      {
-        type: 'faq',
-        name: 'FAQ',
-        description: 'Frequently asked questions',
-        icon: '❓',
-        defaultProps: {
-          items: [
-            { question: 'What is this product?', answer: 'This is an amazing product that helps you achieve your goals.' },
-            { question: 'How do I get started?', answer: 'Simply sign up and follow our quick setup guide.' },
-            { question: 'Is there a free trial?', answer: 'Yes! We offer a 14-day free trial with full access.' },
-          ],
-          style: 'accordion',
         },
       },
     ],

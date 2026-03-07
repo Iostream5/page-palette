@@ -1,4 +1,5 @@
 // Page Component Renderer - Renders individual components
+import React from 'react';
 import { motion } from 'framer-motion';
 import { cn } from '@/lib/utils';
 import { ANIMATION_PRESET_LIST } from './AnimationSelector';
@@ -8,6 +9,16 @@ import { Card, CardContent, CardHeader, CardTitle, CardDescription } from '@/com
 import { Input } from '@/components/ui/input';
 import { Textarea } from '@/components/ui/textarea';
 import { Accordion, AccordionContent, AccordionItem, AccordionTrigger } from '@/components/ui/accordion';
+import { Badge } from '@/components/ui/badge';
+import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar';
+import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
+import { Carousel, CarouselContent, CarouselItem, CarouselNext, CarouselPrevious } from '@/components/ui/carousel';
+import { Breadcrumb, BreadcrumbItem, BreadcrumbLink, BreadcrumbList, BreadcrumbPage, BreadcrumbSeparator } from '@/components/ui/breadcrumb';
+import { Checkbox } from '@/components/ui/checkbox';
+import { Switch } from '@/components/ui/switch';
+import { Slider } from '@/components/ui/slider';
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
+import { Label } from '@/components/ui/label';
 
 interface ComponentRendererProps {
   component: PageComponent;
@@ -138,6 +149,32 @@ function renderComponent(component: PageComponent) {
       return <ProcessStepsRenderer {...component.props} />;
     case 'logo-cloud':
       return <LogoCloudRenderer {...component.props} />;
+    case 'layout-section':
+      return <SectionRenderer {...component.props} />;
+    case 'layout-container':
+      return <ContainerRenderer {...component.props} />;
+    case 'layout-stack':
+      return <StackRenderer {...component.props} />;
+    case 'content-paragraph':
+      return <ParagraphRenderer {...component.props} />;
+    case 'content-badge':
+      return <BadgeRenderer {...component.props} />;
+    case 'content-avatar':
+      return <AvatarRenderer {...component.props} />;
+    case 'ui-tabs':
+      return <TabsRenderer {...component.props} />;
+    case 'ui-carousel':
+      return <CarouselRenderer {...component.props} />;
+    case 'ui-breadcrumb':
+      return <BreadcrumbRenderer {...component.props} />;
+    case 'form-input':
+      return <InputRenderer {...component.props} />;
+    case 'form-checkbox':
+      return <CheckboxRenderer {...component.props} />;
+    case 'form-switch':
+      return <SwitchRenderer {...component.props} />;
+    case 'form-slider':
+      return <SliderRenderer {...component.props} />;
     default:
       return <div className="p-4 text-muted-foreground">Unknown component</div>;
   }
@@ -232,6 +269,318 @@ function HeroRenderer(props: {
           </motion.div>
         )}
       </div>
+    </div>
+  );
+}
+
+// ============= New Renderers =============
+
+function SectionRenderer(props: {
+  backgroundColor?: string;
+  backgroundImage?: string;
+  padding: string;
+  fullWidth: boolean;
+}) {
+  return (
+    <section
+      className={cn(
+        "relative py-12 px-6",
+        props.fullWidth ? "w-full" : "max-w-7xl mx-auto rounded-3xl"
+      )}
+      style={{
+        backgroundColor: props.backgroundColor,
+        backgroundImage: props.backgroundImage ? `url(${props.backgroundImage})` : undefined,
+        backgroundSize: 'cover',
+        backgroundPosition: 'center',
+        padding: props.padding
+      }}
+    >
+      <div className="flex flex-col gap-4">
+        {/* Children components would be rendered here if supported by the architecture */}
+        <div className="border-2 border-dashed border-muted-foreground/20 rounded-xl p-8 text-center text-muted-foreground text-sm">
+          Section Content Area
+        </div>
+      </div>
+    </section>
+  );
+}
+
+function ContainerRenderer(props: {
+  maxWidth: 'sm' | 'md' | 'lg' | 'xl' | 'full';
+  padding: string;
+}) {
+  const maxWidthClasses = {
+    sm: 'max-w-screen-sm',
+    md: 'max-w-screen-md',
+    lg: 'max-w-screen-lg',
+    xl: 'max-w-screen-xl',
+    full: 'max-w-full',
+  };
+
+  return (
+    <div
+      className={cn("mx-auto", maxWidthClasses[props.maxWidth])}
+      style={{ padding: props.padding }}
+    >
+      <div className="border border-dashed border-muted-foreground/10 p-4 rounded-lg">
+        Container Content
+      </div>
+    </div>
+  );
+}
+
+function StackRenderer(props: {
+  direction: 'vertical' | 'horizontal';
+  gap: string;
+  align: 'start' | 'center' | 'end' | 'stretch';
+  justify: 'start' | 'center' | 'end' | 'between';
+}) {
+  const alignClasses = {
+    start: 'items-start',
+    center: 'items-center',
+    end: 'items-end',
+    stretch: 'items-stretch',
+  };
+
+  const justifyClasses = {
+    start: 'justify-start',
+    center: 'justify-center',
+    end: 'justify-end',
+    between: 'justify-between',
+  };
+
+  return (
+    <div
+      className={cn(
+        "flex",
+        props.direction === 'vertical' ? "flex-col" : "flex-row",
+        alignClasses[props.align],
+        justifyClasses[props.justify]
+      )}
+      style={{ gap: props.gap }}
+    >
+      <div className="w-12 h-12 bg-primary/20 rounded-md" />
+      <div className="w-12 h-12 bg-primary/40 rounded-md" />
+      <div className="w-12 h-12 bg-primary/60 rounded-md" />
+    </div>
+  );
+}
+
+function ParagraphRenderer(props: {
+  text: string;
+  alignment: 'left' | 'center' | 'right' | 'justify';
+  color?: string;
+  fontSize: string;
+  lineHeight: string;
+}) {
+  return (
+    <p
+      className={cn("leading-relaxed")}
+      style={{
+        textAlign: props.alignment,
+        color: props.color,
+        fontSize: props.fontSize,
+        lineHeight: props.lineHeight
+      }}
+    >
+      {props.text}
+    </p>
+  );
+}
+
+function BadgeRenderer(props: {
+  text: string;
+  variant: 'default' | 'secondary' | 'outline' | 'destructive';
+  size: 'sm' | 'md' | 'lg';
+}) {
+  const sizeClasses = {
+    sm: 'text-[10px] px-2 py-0',
+    md: 'text-xs px-2.5 py-0.5',
+    lg: 'text-sm px-3 py-1',
+  };
+
+  return (
+    <Badge
+      variant={props.variant}
+      className={sizeClasses[props.size]}
+    >
+      {props.text}
+    </Badge>
+  );
+}
+
+function AvatarRenderer(props: {
+  src?: string;
+  fallback: string;
+  size: 'sm' | 'md' | 'lg' | 'xl';
+  shape: 'circle' | 'square';
+}) {
+  const sizeClasses = {
+    sm: 'h-8 w-8',
+    md: 'h-10 w-10',
+    lg: 'h-16 w-16 text-lg',
+    xl: 'h-24 w-24 text-2xl',
+  };
+
+  return (
+    <Avatar className={cn(sizeClasses[props.size], props.shape === 'square' && "rounded-lg")}>
+      <AvatarImage src={props.src} />
+      <AvatarFallback className={props.shape === 'square' ? "rounded-lg" : ""}>
+        {props.fallback}
+      </AvatarFallback>
+    </Avatar>
+  );
+}
+
+function TabsRenderer(props: {
+  items: Array<{ label: string; content: string }>;
+  variant: 'default' | 'outline';
+}) {
+  if (!props.items?.length) return null;
+
+  return (
+    <Tabs defaultValue={props.items[0].label} className="w-full">
+      <TabsList
+        className={cn("grid w-full", props.variant === 'outline' && "bg-transparent border")}
+        style={{ gridTemplateColumns: `repeat(${props.items.length}, minmax(0, 1fr))` }}
+      >
+        {props.items.map((item, i) => (
+          <TabsTrigger key={i} value={item.label}>{item.label}</TabsTrigger>
+        ))}
+      </TabsList>
+      {props.items.map((item, i) => (
+        <TabsContent key={i} value={item.label} className="p-4 border rounded-b-lg -mt-2">
+          {item.content}
+        </TabsContent>
+      ))}
+    </Tabs>
+  );
+}
+
+function CarouselRenderer(props: {
+  images: string[];
+  aspectRatio: string;
+  autoplay: boolean;
+  showArrows: boolean;
+  showDots: boolean;
+}) {
+  if (!props.images?.length) return null;
+
+  return (
+    <Carousel
+      className="w-full max-w-xl mx-auto"
+      opts={{
+        loop: true,
+      }}
+    >
+      <CarouselContent>
+        {props.images.map((src, i) => (
+          <CarouselItem key={i}>
+            <div className={cn("overflow-hidden rounded-3xl", props.aspectRatio || "aspect-video")}>
+              <img src={src} className="w-full h-full object-cover" alt="" />
+            </div>
+          </CarouselItem>
+        ))}
+      </CarouselContent>
+      {props.showArrows && (
+        <>
+          <CarouselPrevious />
+          <CarouselNext />
+        </>
+      )}
+    </Carousel>
+  );
+}
+
+function BreadcrumbRenderer(props: {
+  items: Array<{ label: string; url: string }>;
+}) {
+  if (!props.items?.length) return null;
+
+  return (
+    <Breadcrumb>
+      <BreadcrumbList>
+        {props.items.map((item, i) => (
+          <React.Fragment key={i}>
+            <BreadcrumbItem>
+              {i === props.items.length - 1 ? (
+                <BreadcrumbPage>{item.label}</BreadcrumbPage>
+              ) : (
+                <BreadcrumbLink href={item.url}>{item.label}</BreadcrumbLink>
+              )}
+            </BreadcrumbItem>
+            {i < props.items.length - 1 && <BreadcrumbSeparator />}
+          </React.Fragment>
+        ))}
+      </BreadcrumbList>
+    </Breadcrumb>
+  );
+}
+
+function InputRenderer(props: {
+  label: string;
+  placeholder: string;
+  type: string;
+  required: boolean;
+  helpText?: string;
+}) {
+  return (
+    <div className="space-y-2">
+      <Label>{props.label} {props.required && <span className="text-destructive">*</span>}</Label>
+      <Input type={props.type} placeholder={props.placeholder} required={props.required} />
+      {props.helpText && <p className="text-xs text-muted-foreground">{props.helpText}</p>}
+    </div>
+  );
+}
+
+function CheckboxRenderer(props: {
+  label: string;
+  checked: boolean;
+  required: boolean;
+}) {
+  return (
+    <div className="flex items-center space-x-2">
+      <Checkbox id="check" defaultChecked={props.checked} required={props.required} />
+      <Label htmlFor="check" className="text-sm font-medium leading-none cursor-pointer">
+        {props.label}
+      </Label>
+    </div>
+  );
+}
+
+function SwitchRenderer(props: {
+  label: string;
+  checked: boolean;
+}) {
+  return (
+    <div className="flex items-center space-x-2">
+      <Switch id="switch" defaultChecked={props.checked} />
+      <Label htmlFor="switch" className="text-sm font-medium leading-none cursor-pointer">
+        {props.label}
+      </Label>
+    </div>
+  );
+}
+
+function SliderRenderer(props: {
+  label: string;
+  min: number;
+  max: number;
+  step: number;
+  defaultValue: number;
+}) {
+  return (
+    <div className="space-y-4">
+      <div className="flex justify-between">
+        <Label>{props.label}</Label>
+        <span className="text-xs font-mono">{props.defaultValue}</span>
+      </div>
+      <Slider
+        defaultValue={[props.defaultValue]}
+        max={props.max}
+        min={props.min}
+        step={props.step}
+      />
     </div>
   );
 }
