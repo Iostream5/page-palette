@@ -1,7 +1,7 @@
 // Component Props Editor - Edit individual component properties
 import { useState } from 'react';
-import { motion } from 'framer-motion';
-import { X, Trash2, Eye, EyeOff, Copy } from 'lucide-react';
+import { motion, AnimatePresence } from 'framer-motion';
+import { X, Trash2, Eye, EyeOff, Copy, Settings2, Sliders } from 'lucide-react';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
 import { Textarea } from '@/components/ui/textarea';
@@ -13,6 +13,15 @@ import { ScrollArea } from '@/components/ui/scroll-area';
 import { Separator } from '@/components/ui/separator';
 import { PageComponent } from '@/types/page-components';
 import { cn } from '@/lib/utils';
+
+function PropField({ label, children }: { label: string; children: React.ReactNode }) {
+  return (
+    <div className="space-y-2">
+      <Label className="text-xs font-medium text-muted-foreground">{label}</Label>
+      {children}
+    </div>
+  );
+}
 
 interface ComponentPropsEditorProps {
   component: PageComponent;
@@ -28,7 +37,10 @@ export function ComponentPropsEditor({
   onDelete,
   onDuplicate,
   onClose,
-}: ComponentPropsEditorProps) {
+  deviceMode = 'desktop',
+}: ComponentPropsEditorProps & { deviceMode?: 'desktop' | 'tablet' | 'mobile' }) {
+  const [activeTab, setActiveTab] = useState<'content' | 'advanced'>('content');
+
   const updateProp = (key: string, value: unknown) => {
     onUpdate({
       ...component,
@@ -103,10 +115,121 @@ export function ComponentPropsEditor({
         </Button>
       </div>
 
+      {/* Tabs */}
+      <div className="flex border-b border-border">
+        <button
+          onClick={() => setActiveTab('content')}
+          className={cn(
+            "flex-1 flex items-center justify-center gap-2 py-3 text-sm font-medium transition-colors",
+            activeTab === 'content' ? "border-b-2 border-primary text-primary" : "text-muted-foreground hover:bg-accent"
+          )}
+        >
+          <Sliders className="h-4 w-4" />
+          Content
+        </button>
+        <button
+          onClick={() => setActiveTab('advanced')}
+          className={cn(
+            "flex-1 flex items-center justify-center gap-2 py-3 text-sm font-medium transition-colors",
+            activeTab === 'advanced' ? "border-b-2 border-primary text-primary" : "text-muted-foreground hover:bg-accent"
+          )}
+        >
+          <Settings2 className="h-4 w-4" />
+          Advanced
+        </button>
+      </div>
+
       {/* Properties */}
       <ScrollArea className="flex-1">
         <div className="p-4 space-y-4">
-          {renderPropsEditor(component, updateProp, updateArrayProp, addArrayItem, removeArrayItem)}
+          <AnimatePresence mode="wait">
+            <motion.div
+              key={activeTab}
+              initial={{ opacity: 0, y: 10 }}
+              animate={{ opacity: 1, y: 0 }}
+              exit={{ opacity: 0, y: -10 }}
+              transition={{ duration: 0.2 }}
+            >
+              {activeTab === 'content' ? (
+                renderPropsEditor(component, updateProp, updateArrayProp, addArrayItem, removeArrayItem)
+              ) : (
+                <div className="space-y-6">
+                  <div className="space-y-4">
+                    <div className="flex items-center justify-between">
+                      <h4 className="text-xs font-semibold uppercase tracking-wider text-muted-foreground">Spacing</h4>
+                      <span className="text-[10px] px-1.5 py-0.5 rounded bg-muted text-muted-foreground capitalize">{deviceMode}</span>
+                    </div>
+                    <div className="grid grid-cols-2 gap-4">
+                      <PropField label="Padding">
+                        <Input
+                          type="text"
+                          placeholder="e.g. 20px"
+                          value={deviceMode === 'desktop' ? (component.props as any).padding || '' : (component.props as any)[`padding_${deviceMode}`] || (component.props as any).padding || ''}
+                          onChange={(e) => updateProp(deviceMode === 'desktop' ? 'padding' : `padding_${deviceMode}`, e.target.value)}
+                        />
+                      </PropField>
+                      <PropField label="Margin">
+                        <Input
+                          type="text"
+                          placeholder="e.g. 10px"
+                          value={deviceMode === 'desktop' ? (component.props as any).margin || '' : (component.props as any)[`margin_${deviceMode}`] || (component.props as any).margin || ''}
+                          onChange={(e) => updateProp(deviceMode === 'desktop' ? 'margin' : `margin_${deviceMode}`, e.target.value)}
+                        />
+                      </PropField>
+                    </div>
+                  </div>
+
+                  <Separator />
+
+                  <div className="space-y-4">
+                    <h4 className="text-xs font-semibold uppercase tracking-wider text-muted-foreground">Layout</h4>
+                    <div className="grid grid-cols-2 gap-4">
+                      <PropField label="Z-Index">
+                        <Input
+                          type="number"
+                          value={(component.props as any).zIndex || 0}
+                          onChange={(e) => updateProp('zIndex', parseInt(e.target.value))}
+                        />
+                      </PropField>
+                      <PropField label="Opacity">
+                        <div className="flex items-center gap-2 pt-2">
+                          <Slider
+                            value={[(component.props as any).opacity ?? 100]}
+                            onValueChange={([v]) => updateProp('opacity', v)}
+                            min={0}
+                            max={100}
+                            step={5}
+                          />
+                          <span className="text-xs font-mono w-8 text-right">{(component.props as any).opacity ?? 100}%</span>
+                        </div>
+                      </PropField>
+                    </div>
+                  </div>
+
+                  <Separator />
+
+                  <div className="space-y-4">
+                    <h4 className="text-xs font-semibold uppercase tracking-wider text-muted-foreground">Effects</h4>
+                    <PropField label="Shadow">
+                      <Select
+                        value={(component.props as any).boxShadow || 'none'}
+                        onValueChange={(v) => updateProp('boxShadow', v)}
+                      >
+                        <SelectTrigger><SelectValue /></SelectTrigger>
+                        <SelectContent>
+                          <SelectItem value="none">None</SelectItem>
+                          <SelectItem value="sm">Small</SelectItem>
+                          <SelectItem value="md">Medium</SelectItem>
+                          <SelectItem value="lg">Large</SelectItem>
+                          <SelectItem value="xl">Extra Large</SelectItem>
+                        </SelectContent>
+                      </Select>
+                    </PropField>
+                  </div>
+                </div>
+              )}
+            </motion.div>
+          </AnimatePresence>
         </div>
       </ScrollArea>
     </motion.div>

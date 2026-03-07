@@ -1,4 +1,4 @@
-import { Template, LinktreeData, GalleryData, LetterData } from '@/types/builder';
+import { Template, LinktreeData, GalleryData, LetterData, BrandKit } from '@/types/builder';
 import { LinktreePreview } from './LinktreePreview';
 import { GalleryPreview } from './GalleryPreview';
 import { LetterPreview } from './LetterPreview';
@@ -14,24 +14,44 @@ export function PreviewRenderer({ template, data }: PreviewRendererProps) {
   // Custom projects render page components
   if (template.category === 'custom') {
     const pageComponents = (data.pageComponents as PageComponent[]) || [];
+    const brandKit = data.brandKit as BrandKit;
+
     return (
       <div className="min-h-full bg-background">
-        {pageComponents
-          .filter(c => c.visible)
-          .sort((a, b) => a.order - b.order)
-          .map(component => (
-            <ComponentRenderer
-              key={component.id}
-              component={component}
-              isEditing={false}
-              isSelected={false}
-            />
-          ))}
-        {pageComponents.length === 0 && (
-          <div className="flex items-center justify-center h-64 text-muted-foreground">
-            No components added yet
-          </div>
+        {brandKit && (
+          <style>
+            {`
+              :root {
+                ${brandKit.primaryColor ? `--primary: ${brandKit.primaryColor};` : ''}
+                ${brandKit.secondaryColor ? `--secondary: ${brandKit.secondaryColor};` : ''}
+                ${brandKit.accentColor ? `--accent: ${brandKit.accentColor};` : ''}
+                ${brandKit.fontFamily ? `--font-body: ${brandKit.fontFamily};` : ''}
+              }
+              .custom-builder-content {
+                ${brandKit.fontFamily ? `font-family: ${brandKit.fontFamily};` : ''}
+              }
+              ${brandKit.customCSS || ''}
+            `}
+          </style>
         )}
+        <div className="custom-builder-content">
+          {pageComponents
+            .filter(c => c.visible)
+            .sort((a, b) => a.order - b.order)
+            .map(component => (
+              <ComponentRenderer
+                key={component.id}
+                component={component}
+                isEditing={false}
+                isSelected={false}
+              />
+            ))}
+          {pageComponents.length === 0 && (
+            <div className="flex items-center justify-center h-64 text-muted-foreground">
+              No components added yet
+            </div>
+          )}
+        </div>
       </div>
     );
   }

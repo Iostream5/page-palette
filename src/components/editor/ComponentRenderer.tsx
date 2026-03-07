@@ -19,18 +19,39 @@ export function ComponentRenderer({
   component, 
   isEditing = false,
   onSelect,
-  isSelected = false
-}: ComponentRendererProps) {
+  isSelected = false,
+  deviceMode = 'desktop'
+}: ComponentRendererProps & { deviceMode?: 'desktop' | 'tablet' | 'mobile' }) {
+  const props = component.props as any;
+
   const wrapperClasses = cn(
     'relative transition-all',
     isEditing && 'cursor-pointer',
     isEditing && isSelected && 'ring-2 ring-primary ring-offset-2',
-    isEditing && !isSelected && 'hover:ring-1 hover:ring-muted-foreground/30'
+    isEditing && !isSelected && 'hover:ring-1 hover:ring-muted-foreground/30',
+    props.boxShadow === 'sm' && 'shadow-sm',
+    props.boxShadow === 'md' && 'shadow-md',
+    props.boxShadow === 'lg' && 'shadow-lg',
+    props.boxShadow === 'xl' && 'shadow-xl'
   );
+
+  // Apply responsive overrides
+  const getResponsiveProp = (baseKey: string) => {
+    if (deviceMode === 'desktop') return props[baseKey];
+    return props[`${baseKey}_${deviceMode}`] || props[baseKey];
+  };
+
+  const advancedStyles = {
+    padding: getResponsiveProp('padding'),
+    margin: getResponsiveProp('margin'),
+    zIndex: props.zIndex,
+    opacity: props.opacity !== undefined ? props.opacity / 100 : undefined,
+  };
 
   return (
     <motion.div 
       className={wrapperClasses}
+      style={advancedStyles}
       onClick={onSelect}
       initial={{ opacity: 0, y: 20 }}
       animate={{ opacity: 1, y: 0 }}
