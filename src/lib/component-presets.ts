@@ -317,6 +317,7 @@ export const COMPONENT_CATEGORIES: ComponentCategory[] = [
           image: 'https://images.unsplash.com/photo-1505740420928-5e560c06d30e?w=400',
           buttonText: 'Beli Sekarang',
           badge: 'Best Seller',
+          layout: 'card',
         },
       },
     ],

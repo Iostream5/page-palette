@@ -788,54 +788,117 @@ function ProductItemRenderer(props: {
   image?: string;
   buttonText: string;
   badge?: string;
+  layout?: 'card' | 'list' | 'minimal';
 }) {
+  const layout = props.layout || 'card';
+
+  if (layout === 'list') {
+    return (
+      <a
+        href={props.productUrl}
+        target="_blank"
+        rel="noopener noreferrer"
+        className="block group/product bg-card hover:bg-accent/30 border border-border rounded-2xl p-3 transition-all active:scale-[0.98]"
+      >
+        <div className="flex items-center gap-4">
+          {props.image && (
+            <div className="w-20 h-20 shrink-0 rounded-xl overflow-hidden border border-border">
+              <img src={props.image} alt={props.title} className="w-full h-full object-cover transition-transform group-hover/product:scale-110" />
+            </div>
+          )}
+          <div className="flex-1 min-w-0 flex flex-col justify-center">
+            <div className="flex items-center gap-2 mb-0.5">
+              {props.badge && (
+                <span className="bg-primary text-primary-foreground text-[8px] font-bold px-1.5 py-0.5 rounded-full uppercase">
+                  {props.badge}
+                </span>
+              )}
+              <h3 className="font-bold text-sm truncate">{props.title}</h3>
+            </div>
+            {props.description && <p className="text-xs text-muted-foreground line-clamp-1 mb-1">{props.description}</p>}
+            <div className="text-sm font-black text-primary">{props.price}</div>
+          </div>
+          <div className="shrink-0 h-8 w-8 rounded-full bg-primary/10 flex items-center justify-center text-primary transition-colors group-hover/product:bg-primary group-hover/product:text-primary-foreground">
+            <span className="text-lg">→</span>
+          </div>
+        </div>
+      </a>
+    );
+  }
+
+  if (layout === 'minimal') {
+    return (
+      <a
+        href={props.productUrl}
+        target="_blank"
+        rel="noopener noreferrer"
+        className="block group/product bg-card hover:bg-accent/30 border border-border rounded-xl p-4 transition-all active:scale-[0.98]"
+      >
+        <div className="flex items-center justify-between gap-4">
+          <div className="flex-1 min-w-0">
+            <h3 className="font-bold text-base mb-1 truncate">{props.title}</h3>
+            <div className="flex items-center gap-3">
+              <span className="text-sm font-black text-primary">{props.price}</span>
+              {props.badge && (
+                <span className="text-[10px] text-muted-foreground font-medium flex items-center gap-1">
+                  <span className="h-1 w-1 rounded-full bg-primary" /> {props.badge}
+                </span>
+              )}
+            </div>
+          </div>
+          <Button size="sm" className="rounded-full px-4 h-8 text-xs font-bold">
+            {props.buttonText}
+          </Button>
+        </div>
+      </a>
+    );
+  }
+
+  // Default Card Layout (Enhanced Lynk-style)
   return (
-    <Card className="overflow-hidden rounded-2xl border border-border bg-card transition-all hover:shadow-md group/product">
-      <div className="flex flex-col sm:flex-row h-full">
-        {props.image && (
-          <div className="w-full sm:w-48 h-48 shrink-0 overflow-hidden relative">
-            <img
-              src={props.image}
-              alt={props.title}
-              className="w-full h-full object-cover transition-transform duration-500 group-hover/product:scale-110"
-            />
-            {props.badge && (
-              <div className="absolute top-2 left-2 bg-primary text-primary-foreground text-[10px] font-bold px-2 py-1 rounded-full uppercase tracking-wider shadow-sm">
-                {props.badge}
-              </div>
-            )}
+    <Card className="overflow-hidden rounded-3xl border border-border bg-card transition-all hover:shadow-xl hover:-translate-y-1 group/product flex flex-col h-full">
+      <div className="relative aspect-square overflow-hidden">
+        {props.image ? (
+          <img
+            src={props.image}
+            alt={props.title}
+            className="w-full h-full object-cover transition-transform duration-700 group-hover/product:scale-110"
+          />
+        ) : (
+          <div className="w-full h-full bg-muted flex items-center justify-center text-muted-foreground">
+            No Image
           </div>
         )}
-
-        <div className="flex-1 p-5 flex flex-col justify-between min-w-0">
-          <div className="space-y-2">
-            <div className="flex items-center gap-2">
-              <span className="text-[10px] font-bold bg-muted text-muted-foreground px-2 py-0.5 rounded uppercase tracking-tighter shrink-0">
-                #{props.productNo}
-              </span>
-              <h3 className="font-bold text-lg leading-tight truncate text-foreground tracking-tight">
-                {props.title}
-              </h3>
-            </div>
-
-            {props.description && (
-              <p className="text-sm text-muted-foreground line-clamp-2 leading-relaxed">
-                {props.description}
-              </p>
-            )}
-
-            <div className="text-xl font-black text-primary tracking-tighter">
-              {props.price}
-            </div>
+        {props.badge && (
+          <div className="absolute top-4 left-4 bg-white/90 backdrop-blur-md text-black text-[10px] font-bold px-3 py-1 rounded-full uppercase tracking-wider shadow-sm border border-white/20">
+            {props.badge}
           </div>
+        )}
+      </div>
 
+      <div className="p-5 flex flex-col flex-1">
+        <div className="flex-1 space-y-2 mb-4">
+          <h3 className="font-bold text-lg leading-tight line-clamp-2 text-foreground group-hover/product:text-primary transition-colors">
+            {props.title}
+          </h3>
+
+          {props.description && (
+            <p className="text-sm text-muted-foreground line-clamp-2 leading-relaxed">
+              {props.description}
+            </p>
+          )}
+        </div>
+
+        <div className="flex items-center justify-between gap-4">
+          <div className="text-xl font-black text-primary tracking-tighter">
+            {props.price}
+          </div>
           <Button
-            className="mt-4 w-full rounded-xl font-bold transition-all active:scale-95 group/shopee"
+            className="rounded-full font-bold transition-all active:scale-95 px-6"
             asChild
           >
-            <a href={props.productUrl} target="_blank" rel="noopener noreferrer" className="flex items-center justify-center gap-2">
-              <span>{props.buttonText}</span>
-              <span className="transition-transform group-hover/shopee:translate-x-1">→</span>
+            <a href={props.productUrl} target="_blank" rel="noopener noreferrer">
+              {props.buttonText}
             </a>
           </Button>
         </div>

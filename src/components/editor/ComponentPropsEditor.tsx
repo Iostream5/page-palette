@@ -330,6 +330,50 @@ function renderPropsEditor(
         </>
       );
 
+    case 'faq':
+      return (
+        <div className="space-y-4">
+          <div className="flex items-center justify-between">
+            <Label className="text-xs font-bold uppercase tracking-wider text-muted-foreground">FAQ Items</Label>
+            <Button size="sm" variant="outline" onClick={() => addArrayItem('items', { question: 'New Question', answer: 'New Answer' })}>
+              Add
+            </Button>
+          </div>
+          {(props.items as any[] || []).map((item, i) => (
+            <div key={i} className="space-y-2 p-3 border border-border rounded-lg bg-muted/30 relative group">
+              <Button
+                size="icon"
+                variant="ghost"
+                className="h-6 w-6 absolute top-1 right-1 opacity-0 group-hover:opacity-100"
+                onClick={() => removeArrayItem('items', i)}
+              >
+                <Trash2 className="h-3 w-3" />
+              </Button>
+              <Input
+                value={item.question}
+                onChange={(e) => updateArrayProp('items', i, 'question', e.target.value)}
+                placeholder="Question"
+              />
+              <Textarea
+                value={item.answer}
+                onChange={(e) => updateArrayProp('items', i, 'answer', e.target.value)}
+                placeholder="Answer"
+                rows={2}
+              />
+            </div>
+          ))}
+          <PropField label="Style">
+            <Select value={props.style as string} onValueChange={(v) => updateProp('style', v)}>
+              <SelectTrigger><SelectValue /></SelectTrigger>
+              <SelectContent>
+                <SelectItem value="accordion">Accordion</SelectItem>
+                <SelectItem value="list">List</SelectItem>
+              </SelectContent>
+            </Select>
+          </PropField>
+        </div>
+      );
+
     case 'heading':
       return (
         <>
@@ -554,6 +598,72 @@ function renderPropsEditor(
         </PropField>
       );
 
+    case 'social-links':
+      return (
+        <>
+          <PropField label="Style">
+            <Select value={props.style as string} onValueChange={(v) => updateProp('style', v)}>
+              <SelectTrigger><SelectValue /></SelectTrigger>
+              <SelectContent>
+                <SelectItem value="icons">Icons Only</SelectItem>
+                <SelectItem value="buttons">Buttons</SelectItem>
+                <SelectItem value="minimal">Minimal</SelectItem>
+              </SelectContent>
+            </Select>
+          </PropField>
+          <PropField label="Size">
+            <Select value={props.size as string} onValueChange={(v) => updateProp('size', v)}>
+              <SelectTrigger><SelectValue /></SelectTrigger>
+              <SelectContent>
+                <SelectItem value="small">Small</SelectItem>
+                <SelectItem value="medium">Medium</SelectItem>
+                <SelectItem value="large">Large</SelectItem>
+              </SelectContent>
+            </Select>
+          </PropField>
+        </>
+      );
+
+    case 'cta':
+      return (
+        <>
+          <PropField label="Title">
+            <Input value={props.title as string} onChange={(e) => updateProp('title', e.target.value)} />
+          </PropField>
+          <PropField label="Description">
+            <Textarea value={props.description as string} onChange={(e) => updateProp('description', e.target.value)} rows={2} />
+          </PropField>
+          <PropField label="Button Text">
+            <Input value={props.buttonText as string} onChange={(e) => updateProp('buttonText', e.target.value)} />
+          </PropField>
+          <PropField label="Variant">
+            <Select value={props.variant as string} onValueChange={(v) => updateProp('variant', v)}>
+              <SelectTrigger><SelectValue /></SelectTrigger>
+              <SelectContent>
+                <SelectItem value="simple">Simple</SelectItem>
+                <SelectItem value="boxed">Boxed</SelectItem>
+                <SelectItem value="gradient">Gradient</SelectItem>
+              </SelectContent>
+            </Select>
+          </PropField>
+        </>
+      );
+
+    case 'newsletter':
+      return (
+        <>
+          <PropField label="Title">
+            <Input value={props.title as string} onChange={(e) => updateProp('title', e.target.value)} />
+          </PropField>
+          <PropField label="Placeholder">
+            <Input value={props.placeholder as string} onChange={(e) => updateProp('placeholder', e.target.value)} />
+          </PropField>
+          <PropField label="Button Text">
+            <Input value={props.buttonText as string} onChange={(e) => updateProp('buttonText', e.target.value)} />
+          </PropField>
+        </>
+      );
+
     case 'divider':
       return (
         <>
@@ -578,6 +688,64 @@ function renderPropsEditor(
               </SelectContent>
             </Select>
           </PropField>
+        </>
+      );
+
+    case 'pricing':
+      return (
+        <>
+          <PropField label="Title">
+            <Input value={props.title as string} onChange={(e) => updateProp('title', e.target.value)} />
+          </PropField>
+          <PropField label="Price">
+            <Input value={props.price as string} onChange={(e) => updateProp('price', e.target.value)} />
+          </PropField>
+          <PropField label="Period">
+            <Input value={props.period as string} onChange={(e) => updateProp('period', e.target.value)} />
+          </PropField>
+          <PropField label="CTA Text">
+            <Input value={props.ctaText as string} onChange={(e) => updateProp('ctaText', e.target.value)} />
+          </PropField>
+          <PropField label="Highlighted">
+            <Switch checked={props.highlighted as boolean} onCheckedChange={(v) => updateProp('highlighted', v)} />
+          </PropField>
+        </>
+      );
+
+    case 'testimonial':
+      return (
+        <>
+          <PropField label="Quote">
+            <Textarea value={props.quote as string} onChange={(e) => updateProp('quote', e.target.value)} rows={3} />
+          </PropField>
+          <PropField label="Author">
+            <Input value={props.author as string} onChange={(e) => updateProp('author', e.target.value)} />
+          </PropField>
+          <PropField label="Role">
+            <Input value={props.role as string} onChange={(e) => updateProp('role', e.target.value)} />
+          </PropField>
+          <PropField label="Rating">
+            <Slider value={[props.rating as number || 5]} onValueChange={([v]) => updateProp('rating', v)} min={1} max={5} step={1} />
+          </PropField>
+        </>
+      );
+
+    case 'video':
+      return (
+        <>
+          <PropField label="Video URL (Embed)">
+            <Input value={props.url as string} onChange={(e) => updateProp('url', e.target.value)} />
+          </PropField>
+          <div className="grid grid-cols-2 gap-2">
+            <div className="flex items-center gap-2">
+              <Switch checked={props.autoplay as boolean} onCheckedChange={(v) => updateProp('autoplay', v)} />
+              <Label className="text-xs">Autoplay</Label>
+            </div>
+            <div className="flex items-center gap-2">
+              <Switch checked={props.muted as boolean} onCheckedChange={(v) => updateProp('muted', v)} />
+              <Label className="text-xs">Muted</Label>
+            </div>
+          </div>
         </>
       );
 
@@ -632,6 +800,16 @@ function renderPropsEditor(
               value={props.badge as string || ''}
               onChange={(e) => updateProp('badge', e.target.value)}
             />
+          </PropField>
+          <PropField label="Layout Style">
+            <Select value={props.layout as string || 'card'} onValueChange={(v) => updateProp('layout', v)}>
+              <SelectTrigger><SelectValue /></SelectTrigger>
+              <SelectContent>
+                <SelectItem value="card">Card (Vertical)</SelectItem>
+                <SelectItem value="list">List (Horizontal)</SelectItem>
+                <SelectItem value="minimal">Minimal (No Image)</SelectItem>
+              </SelectContent>
+            </Select>
           </PropField>
         </>
       );
