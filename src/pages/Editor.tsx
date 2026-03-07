@@ -1,4 +1,4 @@
-import { useState, useEffect, useCallback } from 'react';
+import { useState, useEffect, useCallback, useMemo } from 'react';
 import { useParams, useNavigate } from 'react-router-dom';
 import { useProject, useUpdateProject } from '@/hooks/useProjects';
 import { BrandKit } from '@/types/builder';
@@ -31,6 +31,7 @@ import {
   Pencil,
   Trash2,
   EyeOff,
+  GripVertical,
 } from 'lucide-react';
 import {
   Dialog,
@@ -50,6 +51,42 @@ import { ComponentPropsEditor } from '@/components/editor/ComponentPropsEditor';
 import { ExportDialog } from '@/components/editor/ExportDialog';
 import { PageComponent } from '@/types/page-components';
 import { cn } from '@/lib/utils';
+import { Separator } from '@/components/ui/separator';
+import { Reorder, AnimatePresence as MotionAnimatePresence } from 'framer-motion';
+
+const THEME_PRESETS = [
+  {
+    id: 'modern-dark',
+    name: 'Modern Dark',
+    brandKit: {
+      primaryColor: '#000000',
+      secondaryColor: '#333333',
+      accentColor: '#3b82f6',
+      fontFamily: 'Inter, sans-serif',
+      customCSS: '.custom-builder-content { background: #0a0a0a; min-height: 100vh; color: white; }',
+    },
+  },
+  {
+    id: 'elegant-serif',
+    name: 'Elegant Serif',
+    brandKit: {
+      primaryColor: '#2c1810',
+      secondaryColor: '#5c4033',
+      accentColor: '#d4af37',
+      fontFamily: 'Playfair Display, serif',
+    },
+  },
+  {
+    id: 'tech-vibrant',
+    name: 'Tech Vibrant',
+    brandKit: {
+      primaryColor: '#00f2fe',
+      secondaryColor: '#4facfe',
+      accentColor: '#f093fb',
+      fontFamily: 'Space Grotesk, sans-serif',
+    },
+  },
+];
 
 export default function Editor() {
   const { id } = useParams<{ id: string }>();
@@ -487,7 +524,32 @@ export default function Editor() {
                     existingComponentCount={pageComponents.length}
                   />
                 ) : activeTab === 'styles' ? (
-                  <div className="h-full overflow-auto p-4">
+                  <div className="h-full overflow-auto p-4 space-y-6">
+                    <div className="space-y-3">
+                      <h4 className="text-xs font-semibold uppercase tracking-wider text-muted-foreground">Theme Presets</h4>
+                      <div className="grid grid-cols-1 gap-2">
+                        {THEME_PRESETS.map((preset) => (
+                          <Button
+                            key={preset.id}
+                            variant="outline"
+                            className="justify-start gap-3 h-auto py-3 px-4"
+                            onClick={() => {
+                              setData(prev => ({ ...prev, brandKit: preset.brandKit }));
+                              toast.success(`Applied ${preset.name} theme`);
+                            }}
+                          >
+                            <Palette className="h-4 w-4" style={{ color: (preset.brandKit as any).accentColor }} />
+                            <div className="text-left">
+                              <div className="text-sm font-medium">{preset.name}</div>
+                              <div className="text-[10px] text-muted-foreground">{(preset.brandKit as any).fontFamily.split(',')[0]}</div>
+                            </div>
+                          </Button>
+                        ))}
+                      </div>
+                    </div>
+
+                    <Separator />
+
                     <BrandKitControls
                       brandKit={(data.brandKit as BrandKit) || {}}
                       onChange={(brandKit) => {
@@ -503,89 +565,106 @@ export default function Editor() {
                       Page Navigator
                     </div>
                     <div className="space-y-2">
-                      {pageComponents.map((comp) => (
-                        <div
-                          key={comp.id}
-                          onClick={() => setSelectedComponentId(comp.id)}
-                          className={cn(
-                            "group flex items-center justify-between p-3 rounded-lg border border-border cursor-pointer transition-colors",
-                            selectedComponentId === comp.id ? "bg-primary/10 border-primary" : "hover:bg-accent",
-                            (comp as any).locked && "opacity-80"
-                          )}
-                        >
-                          <div className="flex items-center gap-2 overflow-hidden flex-1">
-                            <span className="text-muted-foreground shrink-0 text-[10px] w-4">{comp.order + 1}</span>
-                            <div className="flex flex-col min-w-0">
-                              <span className="text-sm font-medium capitalize truncate">
-                                {(comp as any).customName || comp.type.replace('-', ' ')}
-                              </span>
-                              <span className="text-[10px] text-muted-foreground uppercase">{comp.type}</span>
-                            </div>
-                          </div>
-                          <div className="flex items-center gap-1 opacity-0 group-hover:opacity-100 shrink-0">
-                            <Button
-                              variant="ghost"
-                              size="icon"
-                              className="h-7 w-7"
-                              onClick={(e) => {
-                                e.stopPropagation();
-                                const name = prompt("Enter component name:", (comp as any).customName || "");
-                                if (name !== null) {
-                                  const updated = pageComponents.map(c =>
-                                    c.id === comp.id ? { ...c, customName: name } : c
-                                  );
-                                  handleComponentsChange(updated);
-                                }
-                              }}
-                              title="Rename"
+                      <Reorder.Group
+                        axis="y"
+                        values={pageComponents.sort((a, b) => a.order - b.order)}
+                        onReorder={(newOrder) => {
+                          const updated = newOrder.map((c, i) => ({ ...c, order: i }));
+                          handleComponentsChange(updated);
+                        }}
+                        className="space-y-2"
+                      >
+                        <MotionAnimatePresence>
+                          {pageComponents.map((comp) => (
+                            <Reorder.Item
+                              key={comp.id}
+                              value={comp}
+                              className="relative"
                             >
-                              <Pencil className="h-3 w-3" />
-                            </Button>
-                            <Button
-                              variant="ghost"
-                              size="icon"
-                              className="h-7 w-7"
-                              onClick={(e) => {
-                                e.stopPropagation();
-                                const updated = pageComponents.map(c =>
-                                  c.id === comp.id ? { ...c, locked: !(c as any).locked } : c
-                                );
-                                handleComponentsChange(updated);
-                              }}
-                              title={(comp as any).locked ? "Unlock" : "Lock"}
-                            >
-                              {(comp as any).locked ? <Lock className="h-3 w-3" /> : <Unlock className="h-3 w-3" />}
-                            </Button>
-                            <Button
-                              variant="ghost"
-                              size="icon"
-                              className="h-7 w-7"
-                              onClick={(e) => {
-                                e.stopPropagation();
-                                const updated = pageComponents.map(c =>
-                                  c.id === comp.id ? { ...c, visible: !c.visible } : c
-                                );
-                                handleComponentsChange(updated);
-                              }}
-                              title={comp.visible ? "Hide" : "Show"}
-                            >
-                              {comp.visible ? <Eye className="h-3 w-3" /> : <EyeOff className="h-3 w-3" />}
-                            </Button>
-                            <Button
-                              variant="ghost"
-                              size="icon"
-                              className="h-7 w-7 text-destructive"
-                              onClick={(e) => {
-                                e.stopPropagation();
-                                handleDeleteComponent(comp.id);
-                              }}
-                              title="Delete"
-                            >
-                              <Trash2 className="h-3 w-3" />
-                            </Button>
-                          </div>
-                        </div>
-                      ))}
+                              <div
+                                onClick={() => setSelectedComponentId(comp.id)}
+                                className={cn(
+                                  "group flex items-center justify-between p-3 rounded-lg border border-border cursor-pointer transition-colors bg-card",
+                                  selectedComponentId === comp.id ? "bg-primary/10 border-primary" : "hover:bg-accent",
+                                  (comp as any).locked && "opacity-80"
+                                )}
+                              >
+                                <div className="flex items-center gap-2 overflow-hidden flex-1">
+                                  <GripVertical className="h-3 w-3 text-muted-foreground shrink-0 cursor-grab active:cursor-grabbing" />
+                                  <div className="flex flex-col min-w-0">
+                                    <span className="text-sm font-medium capitalize truncate">
+                                      {(comp as any).customName || comp.type.replace('-', ' ')}
+                                    </span>
+                                    <span className="text-[10px] text-muted-foreground uppercase">{comp.type}</span>
+                                  </div>
+                                </div>
+                                <div className="flex items-center gap-1 opacity-0 group-hover:opacity-100 shrink-0">
+                                  <Button
+                                    variant="ghost"
+                                    size="icon"
+                                    className="h-7 w-7"
+                                    onClick={(e) => {
+                                      e.stopPropagation();
+                                      const name = prompt("Enter component name:", (comp as any).customName || "");
+                                      if (name !== null) {
+                                        const updated = pageComponents.map(c =>
+                                          c.id === comp.id ? { ...c, customName: name } : c
+                                        );
+                                        handleComponentsChange(updated);
+                                      }
+                                    }}
+                                    title="Rename"
+                                  >
+                                    <Pencil className="h-3 w-3" />
+                                  </Button>
+                                  <Button
+                                    variant="ghost"
+                                    size="icon"
+                                    className="h-7 w-7"
+                                    onClick={(e) => {
+                                      e.stopPropagation();
+                                      const updated = pageComponents.map(c =>
+                                        c.id === comp.id ? { ...c, locked: !(c as any).locked } : c
+                                      );
+                                      handleComponentsChange(updated);
+                                    }}
+                                    title={(comp as any).locked ? "Unlock" : "Lock"}
+                                  >
+                                    {(comp as any).locked ? <Lock className="h-3 w-3" /> : <Unlock className="h-3 w-3" />}
+                                  </Button>
+                                  <Button
+                                    variant="ghost"
+                                    size="icon"
+                                    className="h-7 w-7"
+                                    onClick={(e) => {
+                                      e.stopPropagation();
+                                      const updated = pageComponents.map(c =>
+                                        c.id === comp.id ? { ...c, visible: !c.visible } : c
+                                      );
+                                      handleComponentsChange(updated);
+                                    }}
+                                    title={comp.visible ? "Hide" : "Show"}
+                                  >
+                                    {comp.visible ? <Eye className="h-3 w-3" /> : <EyeOff className="h-3 w-3" />}
+                                  </Button>
+                                  <Button
+                                    variant="ghost"
+                                    size="icon"
+                                    className="h-7 w-7 text-destructive"
+                                    onClick={(e) => {
+                                      e.stopPropagation();
+                                      handleDeleteComponent(comp.id);
+                                    }}
+                                    title="Delete"
+                                  >
+                                    <Trash2 className="h-3 w-3" />
+                                  </Button>
+                                </div>
+                              </div>
+                            </Reorder.Item>
+                          ))}
+                        </MotionAnimatePresence>
+                      </Reorder.Group>
                       {pageComponents.length === 0 && (
                         <p className="text-center text-sm text-muted-foreground py-8">
                           No components yet. Add some to see them here.

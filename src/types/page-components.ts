@@ -29,6 +29,7 @@ export interface PageComponentBase {
   visible: boolean;
   customName?: string;
   locked?: boolean;
+  animations?: string[];
 }
 
 export interface HeroComponent extends PageComponentBase {
