@@ -58,10 +58,10 @@ export default function Dashboard() {
             <h1 className="text-xl font-bold text-foreground">PageCraft</h1>
           </div>
           <div className="flex items-center gap-4">
-            <span className="text-sm text-muted-foreground">{user?.email}</span>
+            <span className="text-sm text-muted-foreground hidden md:inline-block">{user?.email}</span>
             <Button variant="ghost" size="sm" onClick={handleSignOut}>
               <LogOut className="mr-2 h-4 w-4" />
-              Sign Out
+              <span className="hidden sm:inline-block">Sign Out</span>
             </Button>
           </div>
         </div>
@@ -69,12 +69,12 @@ export default function Dashboard() {
 
       {/* Main Content */}
       <main className="mx-auto max-w-6xl px-4 py-8">
-        <div className="mb-8 flex items-center justify-between">
+        <div className="mb-8 flex flex-col sm:flex-row sm:items-center justify-between gap-4">
           <div>
             <h2 className="text-2xl font-bold text-foreground">Your Projects</h2>
-            <p className="mt-1 text-muted-foreground">Create and manage your pages</p>
+            <p className="mt-1 text-sm text-muted-foreground">Create and manage your pages</p>
           </div>
-          <Button onClick={() => navigate('/new')}>
+          <Button onClick={() => navigate('/new')} className="w-full sm:w-auto">
             <Plus className="mr-2 h-4 w-4" />
             New Project
           </Button>
@@ -108,7 +108,7 @@ export default function Dashboard() {
                         <Button
                           variant="ghost"
                           size="icon"
-                          className="opacity-0 transition-opacity group-hover:opacity-100"
+                          className="md:opacity-0 transition-opacity group-hover:opacity-100"
                         >
                           <MoreVertical className="h-4 w-4" />
                         </Button>

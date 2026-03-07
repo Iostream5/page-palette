@@ -141,7 +141,7 @@ export default function NewProject() {
             <div key={s} className="flex items-center gap-2">
               <div
                 className={cn(
-                  'flex h-6 w-6 items-center justify-center rounded-full text-xs font-medium transition-colors',
+                  'flex h-6 w-6 items-center justify-center rounded-full text-xs font-medium transition-colors shrink-0',
                   step === s
                     ? 'bg-primary text-primary-foreground'
                     : steps.indexOf(step) > i
@@ -157,13 +157,13 @@ export default function NewProject() {
               </div>
               <span
                 className={cn(
-                  'text-sm capitalize',
-                  step === s ? 'text-foreground font-medium' : 'text-muted-foreground'
+                  'text-sm capitalize whitespace-nowrap',
+                  step === s ? 'text-foreground font-medium' : 'text-muted-foreground hidden sm:inline'
                 )}
               >
                 {s}
               </span>
-              {i < steps.length - 1 && <ArrowRight className="h-4 w-4 text-muted-foreground/50" />}
+              {i < steps.length - 1 && <ArrowRight className="h-4 w-4 text-muted-foreground/50 shrink-0" />}
             </div>
           ))}
         </div>
@@ -175,7 +175,7 @@ export default function NewProject() {
         {step === 'category' && (
           <div className="animate-fade-in">
             <h2 className="mb-6 text-xl font-semibold">What do you want to create?</h2>
-            <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-4">
+            <div className="grid gap-4 grid-cols-1 sm:grid-cols-2 lg:grid-cols-4">
               {CATEGORIES.map((category) => (
                 <div
                   key={category.id}

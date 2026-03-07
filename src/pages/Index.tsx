@@ -2,7 +2,14 @@ import { useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { useAuth } from '@/hooks/useAuth';
 import { Button } from '@/components/ui/button';
-import { ArrowRight, Layers, Palette, Zap, Globe, Loader2 } from 'lucide-react';
+import { ArrowRight, Layers, Palette, Zap, Globe, Loader2, Menu } from 'lucide-react';
+import {
+  Sheet,
+  SheetContent,
+  SheetHeader,
+  SheetTitle,
+  SheetTrigger,
+} from '@/components/ui/sheet';
 
 export default function Index() {
   const { user, loading } = useAuth();
@@ -25,10 +32,12 @@ export default function Index() {
   return (
     <div className="min-h-screen bg-background">
       {/* Hero Section */}
-      <header className="border-b border-border/50">
+      <header className="border-b border-border/50 sticky top-0 bg-background/80 backdrop-blur-md z-50">
         <div className="mx-auto flex max-w-6xl items-center justify-between px-4 py-4">
           <h1 className="text-xl font-bold text-foreground">PageCraft</h1>
-          <div className="flex items-center gap-3">
+
+          {/* Desktop Navigation */}
+          <div className="hidden md:flex items-center gap-3">
             <Button variant="ghost" onClick={() => navigate('/auth')}>
               Sign In
             </Button>
@@ -37,14 +46,39 @@ export default function Index() {
               <ArrowRight className="ml-2 h-4 w-4" />
             </Button>
           </div>
+
+          {/* Mobile Navigation */}
+          <div className="md:hidden">
+            <Sheet>
+              <SheetTrigger asChild>
+                <Button variant="ghost" size="icon">
+                  <Menu className="h-6 w-6" />
+                </Button>
+              </SheetTrigger>
+              <SheetContent side="right">
+                <SheetHeader>
+                  <SheetTitle className="text-left">PageCraft</SheetTitle>
+                </SheetHeader>
+                <div className="flex flex-col gap-4 mt-8">
+                  <Button variant="ghost" className="justify-start" onClick={() => navigate('/auth')}>
+                    Sign In
+                  </Button>
+                  <Button className="justify-start" onClick={() => navigate('/auth')}>
+                    Get Started
+                    <ArrowRight className="ml-2 h-4 w-4" />
+                  </Button>
+                </div>
+              </SheetContent>
+            </Sheet>
+          </div>
         </div>
       </header>
 
       <main>
         {/* Hero */}
-        <section className="px-4 py-20 text-center">
+        <section className="px-4 py-16 md:py-24 text-center">
           <div className="mx-auto max-w-3xl">
-            <h2 className="animate-fade-in text-5xl font-bold leading-tight text-foreground sm:text-6xl">
+            <h2 className="animate-fade-in text-4xl font-bold leading-tight text-foreground sm:text-6xl">
               Build beautiful pages
               <br />
               <span className="text-primary">in minutes</span>
@@ -67,9 +101,9 @@ export default function Index() {
         </section>
 
         {/* Features */}
-        <section className="border-t border-border/50 bg-secondary/30 px-4 py-20">
+        <section className="border-t border-border/50 bg-secondary/30 px-4 py-16 md:py-24">
           <div className="mx-auto max-w-6xl">
-            <h3 className="mb-12 text-center text-3xl font-bold text-foreground">
+            <h3 className="mb-12 text-center text-2xl md:text-3xl font-bold text-foreground">
               Everything you need to create
             </h3>
             <div className="grid gap-8 sm:grid-cols-2 lg:grid-cols-4">
@@ -98,9 +132,9 @@ export default function Index() {
         </section>
 
         {/* Categories Preview */}
-        <section className="px-4 py-20">
+        <section className="px-4 py-16 md:py-24">
           <div className="mx-auto max-w-6xl">
-            <h3 className="mb-12 text-center text-3xl font-bold text-foreground">
+            <h3 className="mb-12 text-center text-2xl md:text-3xl font-bold text-foreground">
               Create what you need
             </h3>
             <div className="grid gap-6 sm:grid-cols-3">

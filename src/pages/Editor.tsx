@@ -53,6 +53,20 @@ import { PageComponent } from '@/types/page-components';
 import { cn } from '@/lib/utils';
 import { Separator } from '@/components/ui/separator';
 import { Reorder, AnimatePresence as MotionAnimatePresence } from 'framer-motion';
+import { useIsMobile } from '@/hooks/use-mobile';
+import {
+  Drawer,
+  DrawerContent,
+  DrawerHeader,
+  DrawerTitle,
+  DrawerTrigger,
+} from '@/components/ui/drawer';
+import {
+  DropdownMenu,
+  DropdownMenuContent,
+  DropdownMenuItem,
+  DropdownMenuTrigger,
+} from '@/components/ui/dropdown-menu';
 
 const THEME_PRESETS = [
   {
@@ -102,6 +116,15 @@ export default function Editor() {
   const [copied, setCopied] = useState(false);
   const [deviceMode, setDeviceMode] = useState<'desktop' | 'tablet' | 'mobile'>('desktop');
   const [activeTab, setActiveTab] = useState<'components' | 'styles' | 'navigator'>('components');
+  const isMobile = useIsMobile();
+  const [mobilePanelOpen, setMobilePanelOpen] = useState(false);
+  const [mobilePropsOpen, setMobilePropsOpen] = useState(false);
+
+  useEffect(() => {
+    if (isMobile) {
+      setDeviceMode('mobile');
+    }
+  }, [isMobile]);
   
   // History management for all project data
   const {
@@ -147,6 +170,7 @@ export default function Editor() {
     const updatedComponents = [...pageComponents, component];
     handleComponentsChange(updatedComponents);
     setSelectedComponentId(component.id);
+    setMobilePanelOpen(false);
     toast.success(`${component.type} added!`);
   }, [pageComponents, handleComponentsChange]);
 
@@ -185,6 +209,12 @@ export default function Editor() {
 
   // Get selected component
   const selectedComponent = pageComponents.find(c => c.id === selectedComponentId);
+
+  useEffect(() => {
+    if (selectedComponent && isMobile) {
+      setMobilePropsOpen(true);
+    }
+  }, [selectedComponent, isMobile]);
 
   // Generate CSS Variables for Global Styles
   const globalStyles = data.brandKit ? (
@@ -380,316 +410,377 @@ export default function Editor() {
         </div>
 
         <div className="flex items-center gap-2">
-          {hasChanges && (
+          {hasChanges && !isMobile && (
             <span className="text-xs text-muted-foreground">Unsaved changes</span>
           )}
           
-          {/* Export Button */}
-          <ExportDialog components={pageComponents} projectName={projectName} />
-          
-          <Button variant="outline" size="sm" onClick={handleSave} disabled={isSaving}>
-            {isSaving ? (
-              <Loader2 className="mr-2 h-4 w-4 animate-spin" />
-            ) : (
-              <Save className="mr-2 h-4 w-4" />
-            )}
-            Save
-          </Button>
-
-          {project.status === 'published' && publicUrl ? (
-            <div className="flex items-center gap-2">
-              <Button
-                variant="outline"
-                size="sm"
-                onClick={copyPublicUrl}
-                className="gap-2"
-              >
-                {copied ? <Check className="h-4 w-4" /> : <Copy className="h-4 w-4" />}
-                {copied ? 'Copied!' : 'Copy Link'}
-              </Button>
-              <Button variant="outline" size="sm" asChild>
-                <a href={publicUrl} target="_blank" rel="noopener noreferrer">
-                  <ExternalLink className="mr-2 h-4 w-4" />
-                  View
-                </a>
-              </Button>
-              <Button variant="secondary" size="sm" onClick={handleUnpublish}>
-                Unpublish
-              </Button>
-            </div>
+          {isMobile ? (
+            <DropdownMenu>
+              <DropdownMenuTrigger asChild>
+                <Button variant="outline" size="sm">
+                  Actions
+                </Button>
+              </DropdownMenuTrigger>
+              <DropdownMenuContent align="end">
+                <DropdownMenuItem onClick={handleSave} disabled={isSaving}>
+                  {isSaving ? (
+                    <Loader2 className="mr-2 h-4 w-4 animate-spin" />
+                  ) : (
+                    <Save className="mr-2 h-4 w-4" />
+                  )}
+                  Save
+                </DropdownMenuItem>
+                <DropdownMenuItem asChild>
+                  <div onClick={(e) => e.stopPropagation()}>
+                    <ExportDialog
+                      components={pageComponents}
+                      projectName={projectName}
+                      trigger={
+                        <div className="flex items-center w-full px-2 py-1.5 text-sm cursor-default hover:bg-accent rounded-sm">
+                          <Download className="mr-2 h-4 w-4" />
+                          Export
+                        </div>
+                      }
+                    />
+                  </div>
+                </DropdownMenuItem>
+                <Separator className="my-1" />
+                {project.status === 'published' && publicUrl ? (
+                  <>
+                    <DropdownMenuItem onClick={copyPublicUrl}>
+                      {copied ? <Check className="mr-2 h-4 w-4" /> : <Copy className="mr-2 h-4 w-4" />}
+                      {copied ? 'Copied!' : 'Copy Link'}
+                    </DropdownMenuItem>
+                    <DropdownMenuItem asChild>
+                      <a href={publicUrl} target="_blank" rel="noopener noreferrer">
+                        <ExternalLink className="mr-2 h-4 w-4" />
+                        View Page
+                      </a>
+                    </DropdownMenuItem>
+                    <DropdownMenuItem onClick={handleUnpublish}>
+                      Unpublish
+                    </DropdownMenuItem>
+                  </>
+                ) : (
+                  <DropdownMenuItem onClick={() => setPublishDialogOpen(true)}>
+                    <Globe className="mr-2 h-4 w-4" />
+                    Publish
+                  </DropdownMenuItem>
+                )}
+              </DropdownMenuContent>
+            </DropdownMenu>
           ) : (
-            <Dialog open={publishDialogOpen} onOpenChange={setPublishDialogOpen}>
-              <DialogTrigger asChild>
-                <Button size="sm">
+            <>
+              {/* Export Button */}
+              <ExportDialog components={pageComponents} projectName={projectName} />
+
+              <Button variant="outline" size="sm" onClick={handleSave} disabled={isSaving}>
+                {isSaving ? (
+                  <Loader2 className="mr-2 h-4 w-4 animate-spin" />
+                ) : (
+                  <Save className="mr-2 h-4 w-4" />
+                )}
+                Save
+              </Button>
+
+              {project.status === 'published' && publicUrl ? (
+                <div className="flex items-center gap-2">
+                  <Button
+                    variant="outline"
+                    size="sm"
+                    onClick={copyPublicUrl}
+                    className="gap-2"
+                  >
+                    {copied ? <Check className="h-4 w-4" /> : <Copy className="h-4 w-4" />}
+                    {copied ? 'Copied!' : 'Copy Link'}
+                  </Button>
+                  <Button variant="outline" size="sm" asChild>
+                    <a href={publicUrl} target="_blank" rel="noopener noreferrer">
+                      <ExternalLink className="mr-2 h-4 w-4" />
+                      View
+                    </a>
+                  </Button>
+                  <Button variant="secondary" size="sm" onClick={handleUnpublish}>
+                    Unpublish
+                  </Button>
+                </div>
+              ) : (
+                <Button size="sm" onClick={() => setPublishDialogOpen(true)}>
                   <Globe className="mr-2 h-4 w-4" />
                   Publish
                 </Button>
-              </DialogTrigger>
-              <DialogContent>
-                <DialogHeader>
-                  <DialogTitle>Publish Your Page</DialogTitle>
-                  <DialogDescription>
-                    Choose a unique URL for your public page
-                  </DialogDescription>
-                </DialogHeader>
-                <div className="space-y-4 py-4">
-                  <div className="space-y-2">
-                    <Label>URL Slug</Label>
-                    <div className="flex gap-2">
-                      <div className="flex items-center rounded-md border border-input bg-muted px-3 text-sm text-muted-foreground">
-                        /p/
-                      </div>
-                      <Input
-                        value={slug}
-                        onChange={(e) => setSlug(e.target.value.toLowerCase())}
-                        placeholder="my-page"
-                      />
-                    </div>
-                    <p className="text-xs text-muted-foreground">
-                      Only lowercase letters, numbers, and hyphens
-                    </p>
-                  </div>
-                  <Button variant="outline" size="sm" onClick={generateSlug}>
-                    Generate Random Slug
-                  </Button>
-                  <div className="flex gap-2 pt-4">
-                    <Button
-                      variant="outline"
-                      className="flex-1"
-                      onClick={() => setPublishDialogOpen(false)}
-                    >
-                      Cancel
-                    </Button>
-                    <Button className="flex-1" onClick={handlePublish}>
-                      Publish
-                    </Button>
-                  </div>
-                </div>
-              </DialogContent>
-            </Dialog>
+              )}
+            </>
           )}
+
+          {/* Hidden publish dialog trigger for mobile */}
+          <Dialog open={publishDialogOpen} onOpenChange={setPublishDialogOpen}>
+            <DialogContent>
+              <DialogHeader>
+                <DialogTitle>Publish Your Page</DialogTitle>
+                <DialogDescription>
+                  Choose a unique URL for your public page
+                </DialogDescription>
+              </DialogHeader>
+              <div className="space-y-4 py-4">
+                <div className="space-y-2">
+                  <Label>URL Slug</Label>
+                  <div className="flex gap-2">
+                    <div className="flex items-center rounded-md border border-input bg-muted px-3 text-sm text-muted-foreground">
+                      /p/
+                    </div>
+                    <Input
+                      value={slug}
+                      onChange={(e) => setSlug(e.target.value.toLowerCase())}
+                      placeholder="my-page"
+                    />
+                  </div>
+                  <p className="text-xs text-muted-foreground">
+                    Only lowercase letters, numbers, and hyphens
+                  </p>
+                </div>
+                <Button variant="outline" size="sm" onClick={generateSlug}>
+                  Generate Random Slug
+                </Button>
+                <div className="flex gap-2 pt-4">
+                  <Button
+                    variant="outline"
+                    className="flex-1"
+                    onClick={() => setPublishDialogOpen(false)}
+                  >
+                    Cancel
+                  </Button>
+                  <Button className="flex-1" onClick={handlePublish}>
+                    Publish
+                  </Button>
+                </div>
+              </div>
+            </DialogContent>
+          </Dialog>
         </div>
       </header>
 
       {/* Editor Content */}
-      <div className="flex flex-1 overflow-hidden">
-      {/* Left Panel */}
-        <div className="w-96 flex-shrink-0 border-r border-border overflow-hidden flex flex-col">
-          {isCustomProject ? (
-            // Custom project - tabs for Components and Global Styles
-            <div className="flex-1 flex flex-col overflow-hidden">
-              <div className="flex border-b border-border">
-                <button
-                  onClick={() => setActiveTab('components')}
-                  className={cn(
-                    "flex flex-1 items-center justify-center gap-2 py-3 text-sm font-medium transition-colors hover:bg-muted/50",
-                    activeTab === 'components'
-                      ? "border-b-2 border-primary text-primary"
-                      : "text-muted-foreground"
-                  )}
-                >
-                  <LayoutGrid className="h-4 w-4" />
-                  Components
-                </button>
-                <button
-                  onClick={() => setActiveTab('styles')}
-                  className={cn(
-                    "flex flex-1 items-center justify-center gap-2 py-3 text-sm font-medium transition-colors hover:bg-muted/50",
-                    activeTab === 'styles'
-                      ? "border-b-2 border-primary text-primary"
-                      : "text-muted-foreground"
-                  )}
-                >
-                  <Palette className="h-4 w-4" />
-                  Global Styles
-                </button>
-                <button
-                  onClick={() => setActiveTab('navigator')}
-                  className={cn(
-                    "flex flex-1 items-center justify-center gap-2 py-3 text-sm font-medium transition-colors hover:bg-muted/50",
-                    activeTab === 'navigator'
-                      ? "border-b-2 border-primary text-primary"
-                      : "text-muted-foreground"
-                  )}
-                >
-                  <Layers className="h-4 w-4" />
-                  Navigator
-                </button>
-              </div>
+      <div className="flex flex-1 overflow-hidden relative">
+        {/* Left Panel */}
+        {!isMobile && (
+          <div className="w-96 flex-shrink-0 border-r border-border overflow-hidden flex flex-col">
+            {isCustomProject ? (
+              // Custom project - tabs for Components and Global Styles
+              <div className="flex-1 flex flex-col overflow-hidden">
+                <div className="flex border-b border-border">
+                  <button
+                    onClick={() => setActiveTab('components')}
+                    className={cn(
+                      "flex flex-1 items-center justify-center gap-2 py-3 text-sm font-medium transition-colors hover:bg-muted/50",
+                      activeTab === 'components'
+                        ? "border-b-2 border-primary text-primary"
+                        : "text-muted-foreground"
+                    )}
+                  >
+                    <LayoutGrid className="h-4 w-4" />
+                    Components
+                  </button>
+                  <button
+                    onClick={() => setActiveTab('styles')}
+                    className={cn(
+                      "flex flex-1 items-center justify-center gap-2 py-3 text-sm font-medium transition-colors hover:bg-muted/50",
+                      activeTab === 'styles'
+                        ? "border-b-2 border-primary text-primary"
+                        : "text-muted-foreground"
+                    )}
+                  >
+                    <Palette className="h-4 w-4" />
+                    Global Styles
+                  </button>
+                  <button
+                    onClick={() => setActiveTab('navigator')}
+                    className={cn(
+                      "flex flex-1 items-center justify-center gap-2 py-3 text-sm font-medium transition-colors hover:bg-muted/50",
+                      activeTab === 'navigator'
+                        ? "border-b-2 border-primary text-primary"
+                        : "text-muted-foreground"
+                    )}
+                  >
+                    <Layers className="h-4 w-4" />
+                    Navigator
+                  </button>
+                </div>
 
-              <div className="flex-1 overflow-hidden">
-                {activeTab === 'components' ? (
-                  <ComponentLibrary
-                    onAddComponent={handleAddComponent}
-                    existingComponentCount={pageComponents.length}
-                  />
-                ) : activeTab === 'styles' ? (
-                  <div className="h-full overflow-auto p-4 space-y-6">
-                    <div className="space-y-3">
-                      <h4 className="text-xs font-semibold uppercase tracking-wider text-muted-foreground">Theme Presets</h4>
-                      <div className="grid grid-cols-1 gap-2">
-                        {THEME_PRESETS.map((preset) => (
-                          <Button
-                            key={preset.id}
-                            variant="outline"
-                            className="justify-start gap-3 h-auto py-3 px-4"
-                            onClick={() => {
-                              setData(prev => ({ ...prev, brandKit: preset.brandKit }));
-                              toast.success(`Applied ${preset.name} theme`);
-                            }}
-                          >
-                            <Palette className="h-4 w-4" style={{ color: (preset.brandKit as any).accentColor }} />
-                            <div className="text-left">
-                              <div className="text-sm font-medium">{preset.name}</div>
-                              <div className="text-[10px] text-muted-foreground">{(preset.brandKit as any).fontFamily.split(',')[0]}</div>
-                            </div>
-                          </Button>
-                        ))}
-                      </div>
-                    </div>
-
-                    <Separator />
-
-                    <BrandKitControls
-                      brandKit={(data.brandKit as BrandKit) || {}}
-                      onChange={(brandKit) => {
-                        setData(prev => ({ ...prev, brandKit }));
-                        setHasChanges(true);
-                      }}
+                <div className="flex-1 overflow-hidden">
+                  {activeTab === 'components' ? (
+                    <ComponentLibrary
+                      onAddComponent={handleAddComponent}
+                      existingComponentCount={pageComponents.length}
                     />
-                  </div>
-                ) : (
-                  <div className="h-full overflow-auto p-4">
-                    <div className="mb-4 text-sm font-medium flex items-center gap-2">
-                      <Layers className="h-4 w-4" />
-                      Page Navigator
-                    </div>
-                    <div className="space-y-2">
-                      <Reorder.Group
-                        axis="y"
-                        values={pageComponents.sort((a, b) => a.order - b.order)}
-                        onReorder={(newOrder) => {
-                          const updated = newOrder.map((c, i) => ({ ...c, order: i }));
-                          handleComponentsChange(updated);
-                        }}
-                        className="space-y-2"
-                      >
-                        <MotionAnimatePresence>
-                          {pageComponents.map((comp) => (
-                            <Reorder.Item
-                              key={comp.id}
-                              value={comp}
-                              className="relative"
+                  ) : activeTab === 'styles' ? (
+                    <div className="h-full overflow-auto p-4 space-y-6">
+                      <div className="space-y-3">
+                        <h4 className="text-xs font-semibold uppercase tracking-wider text-muted-foreground">Theme Presets</h4>
+                        <div className="grid grid-cols-1 gap-2">
+                          {THEME_PRESETS.map((preset) => (
+                            <Button
+                              key={preset.id}
+                              variant="outline"
+                              className="justify-start gap-3 h-auto py-3 px-4"
+                              onClick={() => {
+                                setData(prev => ({ ...prev, brandKit: preset.brandKit }));
+                                toast.success(`Applied ${preset.name} theme`);
+                              }}
                             >
-                              <div
-                                onClick={() => setSelectedComponentId(comp.id)}
-                                className={cn(
-                                  "group flex items-center justify-between p-3 rounded-lg border border-border cursor-pointer transition-colors bg-card",
-                                  selectedComponentId === comp.id ? "bg-primary/10 border-primary" : "hover:bg-accent",
-                                  (comp as any).locked && "opacity-80"
-                                )}
+                              <Palette className="h-4 w-4" style={{ color: (preset.brandKit as any).accentColor }} />
+                              <div className="text-left">
+                                <div className="text-sm font-medium">{preset.name}</div>
+                                <div className="text-[10px] text-muted-foreground">{(preset.brandKit as any).fontFamily.split(',')[0]}</div>
+                              </div>
+                            </Button>
+                          ))}
+                        </div>
+                      </div>
+
+                      <Separator />
+
+                      <BrandKitControls
+                        brandKit={(data.brandKit as BrandKit) || {}}
+                        onChange={(brandKit) => {
+                          setData(prev => ({ ...prev, brandKit }));
+                          setHasChanges(true);
+                        }}
+                      />
+                    </div>
+                  ) : (
+                    <div className="h-full overflow-auto p-4">
+                      <div className="mb-4 text-sm font-medium flex items-center gap-2">
+                        <Layers className="h-4 w-4" />
+                        Page Navigator
+                      </div>
+                      <div className="space-y-2">
+                        <Reorder.Group
+                          axis="y"
+                          values={pageComponents.sort((a, b) => a.order - b.order)}
+                          onReorder={(newOrder) => {
+                            const updated = newOrder.map((c, i) => ({ ...c, order: i }));
+                            handleComponentsChange(updated);
+                          }}
+                          className="space-y-2"
+                        >
+                          <MotionAnimatePresence>
+                            {pageComponents.map((comp) => (
+                              <Reorder.Item
+                                key={comp.id}
+                                value={comp}
+                                className="relative"
                               >
-                                <div className="flex items-center gap-2 overflow-hidden flex-1">
-                                  <GripVertical className="h-3 w-3 text-muted-foreground shrink-0 cursor-grab active:cursor-grabbing" />
-                                  <div className="flex flex-col min-w-0">
-                                    <span className="text-sm font-medium capitalize truncate">
-                                      {(comp as any).customName || comp.type.replace('-', ' ')}
-                                    </span>
-                                    <span className="text-[10px] text-muted-foreground uppercase">{comp.type}</span>
+                                <div
+                                  onClick={() => setSelectedComponentId(comp.id)}
+                                  className={cn(
+                                    "group flex items-center justify-between p-3 rounded-lg border border-border cursor-pointer transition-colors bg-card",
+                                    selectedComponentId === comp.id ? "bg-primary/10 border-primary" : "hover:bg-accent",
+                                    (comp as any).locked && "opacity-80"
+                                  )}
+                                >
+                                  <div className="flex items-center gap-2 overflow-hidden flex-1">
+                                    <GripVertical className="h-3 w-3 text-muted-foreground shrink-0 cursor-grab active:cursor-grabbing" />
+                                    <div className="flex flex-col min-w-0">
+                                      <span className="text-sm font-medium capitalize truncate">
+                                        {(comp as any).customName || comp.type.replace('-', ' ')}
+                                      </span>
+                                      <span className="text-[10px] text-muted-foreground uppercase">{comp.type}</span>
+                                    </div>
                                   </div>
-                                </div>
-                                <div className="flex items-center gap-1 opacity-0 group-hover:opacity-100 shrink-0">
-                                  <Button
-                                    variant="ghost"
-                                    size="icon"
-                                    className="h-7 w-7"
-                                    onClick={(e) => {
-                                      e.stopPropagation();
-                                      const name = prompt("Enter component name:", (comp as any).customName || "");
-                                      if (name !== null) {
+                                  <div className="flex items-center gap-1 opacity-0 group-hover:opacity-100 shrink-0">
+                                    <Button
+                                      variant="ghost"
+                                      size="icon"
+                                      className="h-7 w-7"
+                                      onClick={(e) => {
+                                        e.stopPropagation();
+                                        const name = prompt("Enter component name:", (comp as any).customName || "");
+                                        if (name !== null) {
+                                          const updated = pageComponents.map(c =>
+                                            c.id === comp.id ? { ...c, customName: name } : c
+                                          );
+                                          handleComponentsChange(updated);
+                                        }
+                                      }}
+                                      title="Rename"
+                                    >
+                                      <Pencil className="h-3 w-3" />
+                                    </Button>
+                                    <Button
+                                      variant="ghost"
+                                      size="icon"
+                                      className="h-7 w-7"
+                                      onClick={(e) => {
+                                        e.stopPropagation();
                                         const updated = pageComponents.map(c =>
-                                          c.id === comp.id ? { ...c, customName: name } : c
+                                          c.id === comp.id ? { ...c, locked: !(c as any).locked } : c
                                         );
                                         handleComponentsChange(updated);
-                                      }
-                                    }}
-                                    title="Rename"
-                                  >
-                                    <Pencil className="h-3 w-3" />
-                                  </Button>
-                                  <Button
-                                    variant="ghost"
-                                    size="icon"
-                                    className="h-7 w-7"
-                                    onClick={(e) => {
-                                      e.stopPropagation();
-                                      const updated = pageComponents.map(c =>
-                                        c.id === comp.id ? { ...c, locked: !(c as any).locked } : c
-                                      );
-                                      handleComponentsChange(updated);
-                                    }}
-                                    title={(comp as any).locked ? "Unlock" : "Lock"}
-                                  >
-                                    {(comp as any).locked ? <Lock className="h-3 w-3" /> : <Unlock className="h-3 w-3" />}
-                                  </Button>
-                                  <Button
-                                    variant="ghost"
-                                    size="icon"
-                                    className="h-7 w-7"
-                                    onClick={(e) => {
-                                      e.stopPropagation();
-                                      const updated = pageComponents.map(c =>
-                                        c.id === comp.id ? { ...c, visible: !c.visible } : c
-                                      );
-                                      handleComponentsChange(updated);
-                                    }}
-                                    title={comp.visible ? "Hide" : "Show"}
-                                  >
-                                    {comp.visible ? <Eye className="h-3 w-3" /> : <EyeOff className="h-3 w-3" />}
-                                  </Button>
-                                  <Button
-                                    variant="ghost"
-                                    size="icon"
-                                    className="h-7 w-7 text-destructive"
-                                    onClick={(e) => {
-                                      e.stopPropagation();
-                                      handleDeleteComponent(comp.id);
-                                    }}
-                                    title="Delete"
-                                  >
-                                    <Trash2 className="h-3 w-3" />
-                                  </Button>
+                                      }}
+                                      title={(comp as any).locked ? "Unlock" : "Lock"}
+                                    >
+                                      {(comp as any).locked ? <Lock className="h-3 w-3" /> : <Unlock className="h-3 w-3" />}
+                                    </Button>
+                                    <Button
+                                      variant="ghost"
+                                      size="icon"
+                                      className="h-7 w-7"
+                                      onClick={(e) => {
+                                        e.stopPropagation();
+                                        const updated = pageComponents.map(c =>
+                                          c.id === comp.id ? { ...c, visible: !c.visible } : c
+                                        );
+                                        handleComponentsChange(updated);
+                                      }}
+                                      title={comp.visible ? "Hide" : "Show"}
+                                    >
+                                      {comp.visible ? <Eye className="h-3 w-3" /> : <EyeOff className="h-3 w-3" />}
+                                    </Button>
+                                    <Button
+                                      variant="ghost"
+                                      size="icon"
+                                      className="h-7 w-7 text-destructive"
+                                      onClick={(e) => {
+                                        e.stopPropagation();
+                                        handleDeleteComponent(comp.id);
+                                      }}
+                                      title="Delete"
+                                    >
+                                      <Trash2 className="h-3 w-3" />
+                                    </Button>
+                                  </div>
                                 </div>
-                              </div>
-                            </Reorder.Item>
-                          ))}
-                        </MotionAnimatePresence>
-                      </Reorder.Group>
-                      {pageComponents.length === 0 && (
-                        <p className="text-center text-sm text-muted-foreground py-8">
-                          No components yet. Add some to see them here.
-                        </p>
-                      )}
+                              </Reorder.Item>
+                            ))}
+                          </MotionAnimatePresence>
+                        </Reorder.Group>
+                        {pageComponents.length === 0 && (
+                          <p className="text-center text-sm text-muted-foreground py-8">
+                            No components yet. Add some to see them here.
+                          </p>
+                        )}
+                      </div>
                     </div>
-                  </div>
-                )}
+                  )}
+                </div>
               </div>
-            </div>
-          ) : (
-            // Template project - content editor only, no components tab
-            <div className="flex-1 overflow-auto p-4">
-              <div className="mb-3 flex items-center gap-2 text-sm font-medium">
-                <Settings className="h-4 w-4" />
-                Content
+            ) : (
+              // Template project - content editor only, no components tab
+              <div className="flex-1 overflow-auto p-4">
+                <div className="mb-3 flex items-center gap-2 text-sm font-medium">
+                  <Settings className="h-4 w-4" />
+                  Content
+                </div>
+                <EditorForm
+                  template={project.template!}
+                  data={data}
+                  onChange={handleDataChange}
+                />
               </div>
-              <EditorForm
-                template={project.template!}
-                data={data}
-                onChange={handleDataChange}
-              />
-            </div>
-          )}
-        </div>
+            )}
+          </div>
+        )}
 
         {isCustomProject ? (
           <>
@@ -723,7 +814,7 @@ export default function Editor() {
             </div>
 
             {/* Right - Props Editor */}
-            {selectedComponent && (
+            {selectedComponent && !isMobile && (
               <div className="w-80 flex-shrink-0 border-l border-border">
                 <ComponentPropsEditor
                   component={selectedComponent}
@@ -754,6 +845,180 @@ export default function Editor() {
               <PreviewRenderer template={project.template!} data={data} />
             </div>
           </div>
+        )}
+
+        {/* Mobile Bottom Navigation */}
+        {isMobile && isCustomProject && (
+          <div className="absolute bottom-0 left-0 right-0 h-16 bg-card border-t border-border flex items-center justify-around z-50">
+            <Button
+              variant="ghost"
+              size="sm"
+              className={cn("flex-col h-auto gap-1", activeTab === 'components' && "text-primary")}
+              onClick={() => {
+                setActiveTab('components');
+                setMobilePanelOpen(true);
+              }}
+            >
+              <LayoutGrid className="h-5 w-5" />
+              <span className="text-[10px]">Library</span>
+            </Button>
+            <Button
+              variant="ghost"
+              size="sm"
+              className={cn("flex-col h-auto gap-1", activeTab === 'styles' && "text-primary")}
+              onClick={() => {
+                setActiveTab('styles');
+                setMobilePanelOpen(true);
+              }}
+            >
+              <Palette className="h-5 w-5" />
+              <span className="text-[10px]">Styles</span>
+            </Button>
+            <Button
+              variant="ghost"
+              size="sm"
+              className={cn("flex-col h-auto gap-1", activeTab === 'navigator' && "text-primary")}
+              onClick={() => {
+                setActiveTab('navigator');
+                setMobilePanelOpen(true);
+              }}
+            >
+              <Layers className="h-5 w-5" />
+              <span className="text-[10px]">Layers</span>
+            </Button>
+            {selectedComponent && (
+              <Button
+                variant="ghost"
+                size="sm"
+                className={cn("flex-col h-auto gap-1", mobilePropsOpen && "text-primary")}
+                onClick={() => setMobilePropsOpen(true)}
+              >
+                <Settings className="h-5 w-5" />
+                <span className="text-[10px]">Props</span>
+              </Button>
+            )}
+          </div>
+        )}
+
+        {/* Mobile Sidebar Content (Drawer) */}
+        {isMobile && isCustomProject && (
+          <Drawer open={mobilePanelOpen} onOpenChange={setMobilePanelOpen}>
+            <DrawerContent className="h-[80vh]">
+              <DrawerHeader>
+                <DrawerTitle className="text-left capitalize">
+                  {activeTab}
+                </DrawerTitle>
+              </DrawerHeader>
+              <div className="flex-1 overflow-hidden">
+                {activeTab === 'components' ? (
+                  <ComponentLibrary
+                    onAddComponent={handleAddComponent}
+                    existingComponentCount={pageComponents.length}
+                  />
+                ) : activeTab === 'styles' ? (
+                  <div className="h-full overflow-auto p-4 space-y-6">
+                    <BrandKitControls
+                      brandKit={(data.brandKit as BrandKit) || {}}
+                      onChange={(brandKit) => {
+                        setData(prev => ({ ...prev, brandKit }));
+                        setHasChanges(true);
+                      }}
+                    />
+                  </div>
+                ) : (
+                  <div className="h-full overflow-auto p-4">
+                    <Reorder.Group
+                      axis="y"
+                      values={pageComponents.sort((a, b) => a.order - b.order)}
+                      onReorder={(newOrder) => {
+                        const updated = newOrder.map((c, i) => ({ ...c, order: i }));
+                        handleComponentsChange(updated);
+                      }}
+                      className="space-y-2"
+                    >
+                      <MotionAnimatePresence>
+                        {pageComponents.map((comp) => (
+                          <Reorder.Item key={comp.id} value={comp} className="relative">
+                             <div
+                                onClick={() => {
+                                  setSelectedComponentId(comp.id);
+                                  setMobilePanelOpen(false);
+                                }}
+                                className={cn(
+                                  "group flex items-center justify-between p-3 rounded-lg border border-border cursor-pointer transition-colors bg-card",
+                                  selectedComponentId === comp.id ? "bg-primary/10 border-primary" : "hover:bg-accent"
+                                )}
+                              >
+                                <div className="flex items-center gap-2 overflow-hidden flex-1">
+                                  <GripVertical className="h-3 w-3 text-muted-foreground shrink-0" />
+                                  <span className="text-sm font-medium capitalize truncate">
+                                    {(comp as any).customName || comp.type.replace('-', ' ')}
+                                  </span>
+                                </div>
+                                <div className="flex items-center gap-1">
+                                  <Button
+                                    variant="ghost"
+                                    size="icon"
+                                    className="h-8 w-8"
+                                    onClick={(e) => {
+                                      e.stopPropagation();
+                                      const updated = pageComponents.map(c =>
+                                        c.id === comp.id ? { ...c, visible: !c.visible } : c
+                                      );
+                                      handleComponentsChange(updated);
+                                    }}
+                                  >
+                                    {comp.visible ? <Eye className="h-4 w-4" /> : <EyeOff className="h-4 w-4" />}
+                                  </Button>
+                                  <Button
+                                    variant="ghost"
+                                    size="icon"
+                                    className="h-8 w-8 text-destructive"
+                                    onClick={(e) => {
+                                      e.stopPropagation();
+                                      handleDeleteComponent(comp.id);
+                                    }}
+                                  >
+                                    <Trash2 className="h-4 w-4" />
+                                  </Button>
+                                </div>
+                              </div>
+                          </Reorder.Item>
+                        ))}
+                      </MotionAnimatePresence>
+                    </Reorder.Group>
+                  </div>
+                )}
+              </div>
+            </DrawerContent>
+          </Drawer>
+        )}
+
+        {/* Mobile Props Editor (Drawer) */}
+        {isMobile && selectedComponent && (
+          <Drawer open={mobilePropsOpen} onOpenChange={setMobilePropsOpen}>
+            <DrawerContent className="h-[80vh]">
+              <DrawerHeader>
+                <DrawerTitle className="text-left">Component Properties</DrawerTitle>
+              </DrawerHeader>
+              <div className="flex-1 overflow-auto p-4 pb-20">
+                <ComponentPropsEditor
+                  component={selectedComponent}
+                  onUpdate={handleUpdateComponent}
+                  onDelete={() => {
+                    handleDeleteComponent(selectedComponent.id);
+                    setMobilePropsOpen(false);
+                  }}
+                  onDuplicate={() => handleDuplicateComponent(selectedComponent.id)}
+                  onClose={() => {
+                    setSelectedComponentId(null);
+                    setMobilePropsOpen(false);
+                  }}
+                  deviceMode={deviceMode}
+                />
+              </div>
+            </DrawerContent>
+          </Drawer>
         )}
       </div>
     </div>

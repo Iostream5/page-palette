@@ -22,9 +22,10 @@ import { toast } from 'sonner';
 interface ExportDialogProps {
   components: PageComponent[];
   projectName: string;
+  trigger?: React.ReactNode;
 }
 
-export function ExportDialog({ components, projectName }: ExportDialogProps) {
+export function ExportDialog({ components, projectName, trigger }: ExportDialogProps) {
   const [isOpen, setIsOpen] = useState(false);
   const [activeTab, setActiveTab] = useState<'html' | 'json'>('html');
   const [includeStyles, setIncludeStyles] = useState(true);
@@ -71,12 +72,14 @@ export function ExportDialog({ components, projectName }: ExportDialogProps) {
   return (
     <Dialog open={isOpen} onOpenChange={setIsOpen}>
       <DialogTrigger asChild>
-        <Button variant="outline" size="sm">
-          <Download className="mr-2 h-4 w-4" />
-          Export
-        </Button>
+        {trigger || (
+          <Button variant="outline" size="sm">
+            <Download className="mr-2 h-4 w-4" />
+            Export
+          </Button>
+        )}
       </DialogTrigger>
-      <DialogContent className="max-w-4xl max-h-[85vh]">
+      <DialogContent className="max-w-4xl max-h-[85vh] w-[95vw]">
         <DialogHeader>
           <DialogTitle className="flex items-center gap-2">
             <Download className="h-5 w-5" />
