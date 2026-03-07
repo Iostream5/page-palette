@@ -581,6 +581,61 @@ function renderPropsEditor(
         </>
       );
 
+    case 'product-item':
+      return (
+        <>
+          <PropField label="Title">
+            <Input
+              value={props.title as string}
+              onChange={(e) => updateProp('title', e.target.value)}
+            />
+          </PropField>
+          <PropField label="Product Number">
+            <Input
+              value={props.productNo as string}
+              onChange={(e) => updateProp('productNo', e.target.value)}
+            />
+          </PropField>
+          <PropField label="Product URL">
+            <Input
+              value={props.productUrl as string}
+              onChange={(e) => updateProp('productUrl', e.target.value)}
+            />
+          </PropField>
+          <PropField label="Price">
+            <Input
+              value={props.price as string}
+              onChange={(e) => updateProp('price', e.target.value)}
+            />
+          </PropField>
+          <PropField label="Description">
+            <Textarea
+              value={props.description as string}
+              onChange={(e) => updateProp('description', e.target.value)}
+              rows={2}
+            />
+          </PropField>
+          <PropField label="Image URL">
+            <Input
+              value={props.image as string}
+              onChange={(e) => updateProp('image', e.target.value)}
+            />
+          </PropField>
+          <PropField label="Button Text">
+            <Input
+              value={props.buttonText as string}
+              onChange={(e) => updateProp('buttonText', e.target.value)}
+            />
+          </PropField>
+          <PropField label="Badge (Optional)">
+            <Input
+              value={props.badge as string || ''}
+              onChange={(e) => updateProp('badge', e.target.value)}
+            />
+          </PropField>
+        </>
+      );
+
     default:
       return (
         <div className="text-sm text-muted-foreground">

@@ -51,22 +51,24 @@ export function ComponentRenderer({
 
   // Get animation config
   const componentAnimations = component.animations || [];
-  const entranceAnim = ANIMATION_PRESET_LIST.find(a => componentAnimations.includes(a.id) && a.category === 'entrance');
-  const hoverAnim = ANIMATION_PRESET_LIST.find(a => componentAnimations.includes(a.id) && a.category === 'hover');
-  const loopAnim = ANIMATION_PRESET_LIST.find(a => componentAnimations.includes(a.id) && a.category === 'continuous');
+  const entranceAnim = ANIMATION_PRESET_LIST.find(a => componentAnimations.includes(a.id) && a.type === 'entrance');
+  const hoverAnim = ANIMATION_PRESET_LIST.find(a => componentAnimations.includes(a.id) && a.type === 'hover');
+  const loopAnim = ANIMATION_PRESET_LIST.find(a => componentAnimations.includes(a.id) && a.type === 'loop');
 
   const animationProps = {
-    initial: entranceAnim?.gsapConfig?.from || { opacity: 1 },
-    whileInView: entranceAnim?.gsapConfig?.to || { opacity: 1 },
+    initial: entranceAnim ? { opacity: 0, y: 20 } : { opacity: 1 },
+    whileInView: entranceAnim ? { opacity: 1, y: 0 } : { opacity: 1 },
     viewport: { once: true, amount: 0.2 },
     whileHover: hoverAnim?.id === 'hover-scale' ? { scale: 1.05 } :
-                hoverAnim?.id === 'hover-lift' ? { y: -10 } : undefined,
-    animate: loopAnim?.id === 'pulse' ? { scale: [1, 1.05, 1] } :
-             loopAnim?.id === 'float' ? { y: [0, -10, 0] } : undefined,
+                hoverAnim?.id === 'hover-lift' ? { y: -10 } :
+                hoverAnim?.id === 'hover-glow' ? { boxShadow: "0 0 20px rgba(var(--primary-rgb), 0.5)" } : undefined,
+    animate: loopAnim?.id === 'pulse' ? { scale: [1, 1.02, 1] } :
+             loopAnim?.id === 'float' ? { y: [0, -10, 0] } :
+             loopAnim?.id === 'spin' ? { rotate: 360 } : undefined,
     transition: {
-      duration: entranceAnim?.gsapConfig?.duration || 0.5,
+      duration: 0.5,
       ease: "easeOut",
-      ...(loopAnim ? { repeat: Infinity, duration: 2 } : {})
+      ...(loopAnim ? { repeat: Infinity, duration: loopAnim.id === 'spin' ? 10 : 3, ease: "linear" } : {})
     }
   };
 
@@ -126,6 +128,8 @@ function renderComponent(component: PageComponent) {
       return <ContactFormRenderer {...component.props} />;
     case 'video':
       return <VideoRenderer {...component.props} />;
+    case 'product-item':
+      return <ProductItemRenderer {...component.props} />;
     default:
       return <div className="p-4 text-muted-foreground">Unknown component</div>;
   }
@@ -668,11 +672,12 @@ function PricingRenderer(props: {
       </ul>
 
       <Button
+        variant={props.highlighted ? "default" : "outline"}
         className={cn(
           "w-full h-12 rounded-2xl font-bold text-sm transition-all active:scale-95 shadow-lg",
           props.highlighted
-            ? "bg-primary text-primary-foreground hover:bg-primary/90 shadow-primary/25"
-            : "variant-outline border-primary/20 hover:bg-primary/5 text-primary"
+            ? "shadow-primary/25"
+            : "border-primary/20 hover:bg-primary/5 text-primary"
         )}
         asChild
       >
@@ -770,6 +775,71 @@ function ContactFormRenderer(props: {
         ))}
         <Button type="submit" className="w-full">{props.submitText}</Button>
       </form>
+    </Card>
+  );
+}
+
+function ProductItemRenderer(props: {
+  title: string;
+  productNo: string;
+  productUrl: string;
+  price: string;
+  description?: string;
+  image?: string;
+  buttonText: string;
+  badge?: string;
+}) {
+  return (
+    <Card className="overflow-hidden rounded-2xl border border-border bg-card transition-all hover:shadow-md group/product">
+      <div className="flex flex-col sm:flex-row h-full">
+        {props.image && (
+          <div className="w-full sm:w-48 h-48 shrink-0 overflow-hidden relative">
+            <img
+              src={props.image}
+              alt={props.title}
+              className="w-full h-full object-cover transition-transform duration-500 group-hover/product:scale-110"
+            />
+            {props.badge && (
+              <div className="absolute top-2 left-2 bg-primary text-primary-foreground text-[10px] font-bold px-2 py-1 rounded-full uppercase tracking-wider shadow-sm">
+                {props.badge}
+              </div>
+            )}
+          </div>
+        )}
+
+        <div className="flex-1 p-5 flex flex-col justify-between min-w-0">
+          <div className="space-y-2">
+            <div className="flex items-center gap-2">
+              <span className="text-[10px] font-bold bg-muted text-muted-foreground px-2 py-0.5 rounded uppercase tracking-tighter shrink-0">
+                #{props.productNo}
+              </span>
+              <h3 className="font-bold text-lg leading-tight truncate text-foreground tracking-tight">
+                {props.title}
+              </h3>
+            </div>
+
+            {props.description && (
+              <p className="text-sm text-muted-foreground line-clamp-2 leading-relaxed">
+                {props.description}
+              </p>
+            )}
+
+            <div className="text-xl font-black text-primary tracking-tighter">
+              {props.price}
+            </div>
+          </div>
+
+          <Button
+            className="mt-4 w-full rounded-xl font-bold transition-all active:scale-95 group/shopee"
+            asChild
+          >
+            <a href={props.productUrl} target="_blank" rel="noopener noreferrer" className="flex items-center justify-center gap-2">
+              <span>{props.buttonText}</span>
+              <span className="transition-transform group-hover/shopee:translate-x-1">→</span>
+            </a>
+          </Button>
+        </div>
+      </div>
     </Card>
   );
 }

@@ -20,7 +20,8 @@ export type PageComponentType =
   | 'pricing'
   | 'faq'
   | 'contact-form'
-  | 'newsletter';
+  | 'newsletter'
+  | 'product-item';
 
 export interface PageComponentBase {
   id: string;
@@ -255,6 +256,20 @@ export interface NewsletterComponent extends PageComponentBase {
   };
 }
 
+export interface ProductItemComponent extends PageComponentBase {
+  type: 'product-item';
+  props: {
+    title: string;
+    productNo: string;
+    productUrl: string;
+    price: string;
+    description?: string;
+    image?: string;
+    buttonText: string;
+    badge?: string;
+  };
+}
+
 export type PageComponent =
   | HeroComponent
   | HeadingComponent
@@ -275,7 +290,8 @@ export type PageComponent =
   | PricingComponent
   | FAQComponent
   | ContactFormComponent
-  | NewsletterComponent;
+  | NewsletterComponent
+  | ProductItemComponent;
 
 // Component category for organizing the library
 export interface ComponentCategory {
