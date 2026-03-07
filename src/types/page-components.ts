@@ -21,7 +21,11 @@ export type PageComponentType =
   | 'faq'
   | 'contact-form'
   | 'newsletter'
-  | 'product-item';
+  | 'product-item'
+  | 'marquee'
+  | 'bento-grid'
+  | 'process-steps'
+  | 'logo-cloud';
 
 export interface PageComponentBase {
   id: string;
@@ -270,6 +274,56 @@ export interface ProductItemComponent extends PageComponentBase {
   };
 }
 
+export interface MarqueeComponent extends PageComponentBase {
+  type: 'marquee';
+  props: {
+    items: string[];
+    speed: number;
+    direction: 'left' | 'right';
+    pauseOnHover: boolean;
+    gap: string;
+  };
+}
+
+export interface BentoGridComponent extends PageComponentBase {
+  type: 'bento-grid';
+  props: {
+    items: Array<{
+      title: string;
+      description: string;
+      image?: string;
+      size: 'small' | 'medium' | 'large';
+      color?: string;
+    }>;
+  };
+}
+
+export interface ProcessStepsComponent extends PageComponentBase {
+  type: 'process-steps';
+  props: {
+    steps: Array<{
+      title: string;
+      description: string;
+      icon: string;
+    }>;
+    layout: 'vertical' | 'horizontal';
+    color?: string;
+  };
+}
+
+export interface LogoCloudComponent extends PageComponentBase {
+  type: 'logo-cloud';
+  props: {
+    logos: Array<{
+      src: string;
+      alt: string;
+      url?: string;
+    }>;
+    title?: string;
+    style: 'grid' | 'marquee' | 'simple';
+  };
+}
+
 export type PageComponent =
   | HeroComponent
   | HeadingComponent
@@ -291,7 +345,11 @@ export type PageComponent =
   | FAQComponent
   | ContactFormComponent
   | NewsletterComponent
-  | ProductItemComponent;
+  | ProductItemComponent
+  | MarqueeComponent
+  | BentoGridComponent
+  | ProcessStepsComponent
+  | LogoCloudComponent;
 
 // Component category for organizing the library
 export interface ComponentCategory {

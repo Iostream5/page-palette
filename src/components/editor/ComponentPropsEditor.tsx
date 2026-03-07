@@ -959,6 +959,160 @@ function renderPropsEditor(
         </>
       );
 
+    case 'marquee':
+      return (
+        <div className="space-y-4">
+          <div className="flex items-center justify-between">
+            <Label className="text-xs font-bold uppercase tracking-wider text-muted-foreground">Items</Label>
+            <Button size="sm" variant="outline" onClick={() => updateProp('items', [...(props.items as string[]), 'New Item'])}>
+              Add Item
+            </Button>
+          </div>
+          {(props.items as string[] || []).map((item, i) => (
+            <div key={i} className="flex gap-2">
+              <Input
+                value={item}
+                onChange={(e) => {
+                  const newItems = [...(props.items as string[])];
+                  newItems[i] = e.target.value;
+                  updateProp('items', newItems);
+                }}
+              />
+              <Button size="icon" variant="ghost" className="h-10 w-10 text-destructive" onClick={() => {
+                const newItems = [...(props.items as string[])];
+                newItems.splice(i, 1);
+                updateProp('items', newItems);
+              }}>
+                <Trash2 className="h-4 w-4" />
+              </Button>
+            </div>
+          ))}
+          <PropField label="Speed (Duration in s)">
+            <Input type="number" value={props.speed as number} onChange={(e) => updateProp('speed', parseInt(e.target.value))} />
+          </PropField>
+          <PropField label="Gap">
+            <Input value={props.gap as string} onChange={(e) => updateProp('gap', e.target.value)} placeholder="40px" />
+          </PropField>
+          <div className="flex items-center justify-between">
+            <Label className="text-xs">Direction</Label>
+            <Select value={props.direction as string} onValueChange={(v) => updateProp('direction', v)}>
+              <SelectTrigger className="w-24"><SelectValue /></SelectTrigger>
+              <SelectContent>
+                <SelectItem value="left">Left</SelectItem>
+                <SelectItem value="right">Right</SelectItem>
+              </SelectContent>
+            </Select>
+          </div>
+          <div className="flex items-center justify-between">
+            <Label className="text-xs">Pause on Hover</Label>
+            <Switch checked={props.pauseOnHover as boolean} onCheckedChange={(v) => updateProp('pauseOnHover', v)} />
+          </div>
+        </div>
+      );
+
+    case 'bento-grid':
+      return (
+        <div className="space-y-4">
+          <div className="flex items-center justify-between">
+            <Label className="text-xs font-bold uppercase tracking-wider text-muted-foreground">Bento Items</Label>
+            <Button size="sm" variant="outline" onClick={() => addArrayItem('items', { title: 'New Item', description: 'Desc', size: 'small' })}>
+              Add
+            </Button>
+          </div>
+          {(props.items as any[] || []).map((item, i) => (
+            <div key={i} className="space-y-2 p-3 border border-border rounded-lg bg-muted/30 relative group">
+              <Button size="icon" variant="ghost" className="h-6 w-6 absolute top-1 right-1 opacity-0 group-hover:opacity-100" onClick={() => removeArrayItem('items', i)}>
+                <Trash2 className="h-3 w-3" />
+              </Button>
+              <Input value={item.title} onChange={(e) => updateArrayProp('items', i, 'title', e.target.value)} placeholder="Title" />
+              <Textarea value={item.description} onChange={(e) => updateArrayProp('items', i, 'description', e.target.value)} placeholder="Description" rows={2} />
+              <Input value={item.image || ''} onChange={(e) => updateArrayProp('items', i, 'image', e.target.value)} placeholder="Image URL (Optional)" />
+              <div className="flex gap-2">
+                <Select value={item.size} onValueChange={(v) => updateArrayProp('items', i, 'size', v)}>
+                  <SelectTrigger className="h-8 flex-1 text-xs"><SelectValue /></SelectTrigger>
+                  <SelectContent>
+                    <SelectItem value="small">Small</SelectItem>
+                    <SelectItem value="medium">Medium</SelectItem>
+                    <SelectItem value="large">Large</SelectItem>
+                  </SelectContent>
+                </Select>
+                <Input type="color" className="w-12 h-8 p-1" value={item.color || '#ffffff'} onChange={(e) => updateArrayProp('items', i, 'color', e.target.value)} />
+              </div>
+            </div>
+          ))}
+        </div>
+      );
+
+    case 'process-steps':
+      return (
+        <div className="space-y-4">
+          <div className="flex items-center justify-between">
+            <Label className="text-xs font-bold uppercase tracking-wider text-muted-foreground">Steps</Label>
+            <Button size="sm" variant="outline" onClick={() => addArrayItem('steps', { title: 'New Step', description: 'Desc', icon: '✨' })}>
+              Add
+            </Button>
+          </div>
+          {(props.steps as any[] || []).map((step, i) => (
+            <div key={i} className="space-y-2 p-3 border border-border rounded-lg bg-muted/30 relative group">
+              <Button size="icon" variant="ghost" className="h-6 w-6 absolute top-1 right-1 opacity-0 group-hover:opacity-100" onClick={() => removeArrayItem('steps', i)}>
+                <Trash2 className="h-3 w-3" />
+              </Button>
+              <div className="flex gap-2">
+                <Input className="w-12" value={step.icon} onChange={(e) => updateArrayProp('steps', i, 'icon', e.target.value)} />
+                <Input className="flex-1" value={step.title} onChange={(e) => updateArrayProp('steps', i, 'title', e.target.value)} />
+              </div>
+              <Textarea value={step.description} onChange={(e) => updateArrayProp('steps', i, 'description', e.target.value)} rows={2} />
+            </div>
+          ))}
+          <PropField label="Layout">
+            <Select value={props.layout as string} onValueChange={(v) => updateProp('layout', v)}>
+              <SelectTrigger><SelectValue /></SelectTrigger>
+              <SelectContent>
+                <SelectItem value="horizontal">Horizontal</SelectItem>
+                <SelectItem value="vertical">Vertical</SelectItem>
+              </SelectContent>
+            </Select>
+          </PropField>
+          <PropField label="Accent Color">
+            <Input type="color" value={props.color as string || '#6366f1'} onChange={(e) => updateProp('color', e.target.value)} />
+          </PropField>
+        </div>
+      );
+
+    case 'logo-cloud':
+      return (
+        <div className="space-y-4">
+          <PropField label="Title">
+            <Input value={props.title as string || ''} onChange={(e) => updateProp('title', e.target.value)} />
+          </PropField>
+          <PropField label="Display Style">
+            <Select value={props.style as string} onValueChange={(v) => updateProp('style', v)}>
+              <SelectTrigger><SelectValue /></SelectTrigger>
+              <SelectContent>
+                <SelectItem value="simple">Simple</SelectItem>
+                <SelectItem value="grid">Grid</SelectItem>
+                <SelectItem value="marquee">Scrolling</SelectItem>
+              </SelectContent>
+            </Select>
+          </PropField>
+          <div className="flex items-center justify-between pt-2">
+            <Label className="text-xs font-bold uppercase tracking-wider text-muted-foreground">Logos</Label>
+            <Button size="sm" variant="outline" onClick={() => addArrayItem('logos', { src: '', alt: '' })}>
+              Add Logo
+            </Button>
+          </div>
+          {(props.logos as any[] || []).map((logo, i) => (
+            <div key={i} className="space-y-2 p-2 border border-border rounded bg-muted/30 relative group">
+              <Button size="icon" variant="ghost" className="h-6 w-6 absolute top-1 right-1 opacity-0 group-hover:opacity-100" onClick={() => removeArrayItem('logos', i)}>
+                <Trash2 className="h-3 w-3" />
+              </Button>
+              <Input className="h-8" value={logo.src} onChange={(e) => updateArrayProp('logos', i, 'src', e.target.value)} placeholder="Logo URL" />
+              <Input className="h-8" value={logo.alt} onChange={(e) => updateArrayProp('logos', i, 'alt', e.target.value)} placeholder="Alt Text" />
+            </div>
+          ))}
+        </div>
+      );
+
     default:
       return (
         <div className="text-sm text-muted-foreground">

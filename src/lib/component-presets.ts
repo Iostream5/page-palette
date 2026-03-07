@@ -71,6 +71,19 @@ export const COMPONENT_CATEGORIES: ComponentCategory[] = [
           thickness: 'thin',
         },
       },
+      {
+        type: 'marquee',
+        name: 'Scrolling Marquee',
+        description: 'Continuous scrolling text for modern landing pages',
+        icon: '🎞️',
+        defaultProps: {
+          items: ['Modern Design', 'Fast Performance', 'Easy to Use', 'Fully Responsive'],
+          speed: 20,
+          direction: 'left',
+          pauseOnHover: true,
+          gap: '40px',
+        },
+      },
     ],
   },
   {
@@ -125,6 +138,19 @@ export const COMPONENT_CATEGORIES: ComponentCategory[] = [
           muted: false,
           loop: false,
           aspectRatio: '16:9',
+        },
+      },
+      {
+        type: 'bento-grid',
+        name: 'Bento Grid',
+        description: 'Elegant asymmetrical grid for features',
+        icon: '🍱',
+        defaultProps: {
+          items: [
+            { title: 'Feature One', description: 'A brief description of this cool feature.', size: 'large', image: 'https://images.unsplash.com/photo-1618005182384-a83a8bd57fbe?w=800' },
+            { title: 'Feature Two', description: 'Short and sweet description.', size: 'small', color: '#f3f4f6' },
+            { title: 'Feature Three', description: 'Another interesting detail.', size: 'medium', color: '#e5e7eb' },
+          ],
         },
       },
     ],
@@ -272,6 +298,21 @@ export const COMPONENT_CATEGORIES: ComponentCategory[] = [
         },
       },
       {
+        type: 'process-steps',
+        name: 'Process Steps',
+        description: 'Clean visual workflow or steps',
+        icon: '🪜',
+        defaultProps: {
+          steps: [
+            { title: 'Step 1', description: 'Research and planning', icon: '🔍' },
+            { title: 'Step 2', description: 'Design and prototype', icon: '🎨' },
+            { title: 'Step 3', description: 'Develop and launch', icon: '🚀' },
+          ],
+          layout: 'horizontal',
+          color: '#6366f1',
+        },
+      },
+      {
         type: 'icon-list',
         name: 'Icon List',
         description: 'List with icons',
@@ -294,6 +335,22 @@ export const COMPONENT_CATEGORIES: ComponentCategory[] = [
           targetDate: new Date(Date.now() + 7 * 24 * 60 * 60 * 1000).toISOString(),
           title: 'Coming Soon',
           style: 'flip',
+        },
+      },
+      {
+        type: 'logo-cloud',
+        name: 'Logo Cloud',
+        description: 'Display partner or client logos',
+        icon: '☁️',
+        defaultProps: {
+          title: 'Trusted by world-class companies',
+          logos: [
+            { src: 'https://cdn.worldvectorlogo.com/logos/google-2015.svg', alt: 'Google' },
+            { src: 'https://cdn.worldvectorlogo.com/logos/apple-11.svg', alt: 'Apple' },
+            { src: 'https://cdn.worldvectorlogo.com/logos/microsoft-5.svg', alt: 'Microsoft' },
+            { src: 'https://cdn.worldvectorlogo.com/logos/amazon-2.svg', alt: 'Amazon' },
+          ],
+          style: 'simple',
         },
       },
     ],

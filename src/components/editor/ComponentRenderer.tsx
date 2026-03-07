@@ -130,6 +130,14 @@ function renderComponent(component: PageComponent) {
       return <ContactFormRenderer {...component.props} />;
     case 'video':
       return <VideoRenderer {...component.props} />;
+    case 'marquee':
+      return <MarqueeRenderer {...component.props} />;
+    case 'bento-grid':
+      return <BentoGridRenderer {...component.props} />;
+    case 'process-steps':
+      return <ProcessStepsRenderer {...component.props} />;
+    case 'logo-cloud':
+      return <LogoCloudRenderer {...component.props} />;
     default:
       return <div className="p-4 text-muted-foreground">Unknown component</div>;
   }
@@ -933,6 +941,156 @@ function VideoRenderer(props: {
         className="w-full h-full"
         allowFullScreen
       />
+    </div>
+  );
+}
+
+function MarqueeRenderer(props: {
+  items: string[];
+  speed: number;
+  direction: 'left' | 'right';
+  pauseOnHover: boolean;
+  gap: string;
+}) {
+  return (
+    <div className="overflow-hidden whitespace-nowrap py-6 bg-accent/20 border-y border-border group">
+      <motion.div
+        className="flex items-center w-max"
+        animate={{
+          x: props.direction === 'left' ? [0, "-50%"] : ["-50%", 0],
+        }}
+        transition={{
+          duration: props.speed,
+          repeat: Infinity,
+          ease: "linear",
+        }}
+        style={{ gap: props.gap }}
+      >
+        {/* Render items twice for seamless loop with -50% translation */}
+        {[...props.items, ...props.items].map((item, i) => (
+          <span
+            key={i}
+            className="text-2xl md:text-4xl font-black uppercase tracking-tighter text-foreground/50 hover:text-primary transition-colors px-4"
+          >
+            {item}
+          </span>
+        ))}
+      </motion.div>
+    </div>
+  );
+}
+
+function BentoGridRenderer(props: {
+  items: Array<{ title: string; description: string; image?: string; size: 'small' | 'medium' | 'large'; color?: string }>;
+}) {
+  return (
+    <div className="grid grid-cols-1 md:grid-cols-3 gap-4 py-4 auto-rows-[250px]">
+      {props.items.map((item, i) => (
+        <div
+          key={i}
+          className={cn(
+            'rounded-3xl p-8 flex flex-col justify-end relative overflow-hidden group/bento transition-all duration-500 hover:shadow-2xl hover:-translate-y-1 border border-border',
+            item.size === 'large' ? 'md:col-span-2 md:row-span-2' :
+            item.size === 'medium' ? 'md:col-span-2' : 'md:col-span-1'
+          )}
+          style={{ backgroundColor: item.color || 'var(--card)' }}
+        >
+          {item.image && (
+            <div className="absolute inset-0 z-0">
+              <img src={item.image} alt={item.title} className="w-full h-full object-cover transition-transform duration-700 group-hover/bento:scale-110 opacity-40" />
+              <div className="absolute inset-0 bg-gradient-to-t from-black/80 via-black/20 to-transparent" />
+            </div>
+          )}
+          <div className="relative z-10">
+            <h3 className={cn(
+              "font-bold mb-2 tracking-tight",
+              item.size === 'large' ? 'text-3xl' : 'text-xl',
+              item.image ? 'text-white' : 'text-foreground'
+            )}>{item.title}</h3>
+            <p className={cn(
+              "text-sm line-clamp-2",
+              item.image ? 'text-white/70' : 'text-muted-foreground'
+            )}>{item.description}</p>
+          </div>
+        </div>
+      ))}
+    </div>
+  );
+}
+
+function ProcessStepsRenderer(props: {
+  steps: Array<{ title: string; description: string; icon: string }>;
+  layout: 'vertical' | 'horizontal';
+  color?: string;
+}) {
+  return (
+    <div className={cn(
+      'grid gap-8 py-8',
+      props.layout === 'horizontal' ? 'grid-cols-1 md:grid-cols-3' : 'grid-cols-1 max-w-2xl mx-auto'
+    )}>
+      {props.steps.map((step, i) => (
+        <div key={i} className={cn(
+          "flex items-start gap-4 group/step",
+          props.layout === 'vertical' ? 'flex-row' : 'flex-col'
+        )}>
+          <div className="relative shrink-0">
+            <div
+              className="w-12 h-12 rounded-2xl flex items-center justify-center text-xl shadow-lg transition-transform duration-300 group-hover/step:rotate-12 group-hover/step:scale-110"
+              style={{ backgroundColor: props.color || 'var(--primary)', color: 'white' }}
+            >
+              {step.icon}
+            </div>
+            <div className="absolute -top-2 -right-2 w-6 h-6 rounded-full bg-background border-2 border-primary flex items-center justify-center text-[10px] font-bold">
+              {i + 1}
+            </div>
+          </div>
+          <div className="space-y-1">
+            <h4 className="font-bold text-lg tracking-tight">{step.title}</h4>
+            <p className="text-sm text-muted-foreground leading-relaxed">{step.description}</p>
+          </div>
+        </div>
+      ))}
+    </div>
+  );
+}
+
+function LogoCloudRenderer(props: {
+  logos: Array<{ src: string; alt: string; url?: string }>;
+  title?: string;
+  style: 'grid' | 'marquee' | 'simple';
+}) {
+  if (props.style === 'marquee') {
+    return (
+      <div className="py-12 space-y-8">
+        {props.title && <p className="text-center text-sm font-semibold uppercase tracking-widest text-muted-foreground">{props.title}</p>}
+        <div className="overflow-hidden whitespace-nowrap [mask-image:linear-gradient(to_right,transparent,black_20%,black_80%,transparent)]">
+          <motion.div
+            className="flex gap-20 items-center w-max px-10"
+            animate={{ x: [0, "-50%"] }}
+            transition={{ duration: 30, repeat: Infinity, ease: "linear" }}
+          >
+            {[...props.logos, ...props.logos].map((logo, i) => (
+              <img key={i} src={logo.src} alt={logo.alt} className="h-8 md:h-12 w-auto grayscale opacity-40 hover:grayscale-0 hover:opacity-100 transition-all duration-300" />
+            ))}
+          </motion.div>
+        </div>
+      </div>
+    );
+  }
+
+  return (
+    <div className="py-12 space-y-8">
+      {props.title && <p className="text-center text-sm font-semibold uppercase tracking-widest text-muted-foreground">{props.title}</p>}
+      <div className={cn(
+        "flex flex-wrap items-center justify-center gap-x-12 gap-y-8",
+        props.style === 'grid' ? "grid grid-cols-2 md:grid-cols-4 lg:grid-cols-6" : ""
+      )}>
+        {props.logos.map((logo, i) => (
+          <div key={i} className="flex items-center justify-center">
+            <img src={logo.src} alt={logo.alt} className="h-8 md:h-10 w-auto grayscale opacity-50 hover:grayscale-0 hover:opacity-100 transition-all duration-300" />
+          </div>
+        ))}
+      </div>
     </div>
   );
 }
