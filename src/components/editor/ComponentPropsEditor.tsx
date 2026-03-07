@@ -589,12 +589,3 @@ function renderPropsEditor(
       );
   }
 }
-
-function PropField({ label, children }: { label: string; children: React.ReactNode }) {
-  return (
-    <div className="space-y-2">
-      <Label className="text-xs font-medium text-muted-foreground">{label}</Label>
-      {children}
-    </div>
-  );
-}
