@@ -271,6 +271,216 @@ function renderPropsEditor(
   const props = component.props as Record<string, unknown>;
 
   switch (component.type) {
+    case 'product-item':
+      return (
+        <>
+          <PropField label="Title">
+            <Input
+              value={props.title as string}
+              onChange={(e) => updateProp('title', e.target.value)}
+            />
+          </PropField>
+          <PropField label="Product Number">
+            <Input
+              value={props.productNo as string}
+              onChange={(e) => updateProp('productNo', e.target.value)}
+            />
+          </PropField>
+          <PropField label="Product URL">
+            <Input
+              value={props.productUrl as string}
+              onChange={(e) => updateProp('productUrl', e.target.value)}
+            />
+          </PropField>
+          <PropField label="Price">
+            <Input
+              value={props.price as string}
+              onChange={(e) => updateProp('price', e.target.value)}
+            />
+          </PropField>
+          <PropField label="Description">
+            <Textarea
+              value={props.description as string}
+              onChange={(e) => updateProp('description', e.target.value)}
+              rows={2}
+            />
+          </PropField>
+          <PropField label="Image URL">
+            <Input
+              value={props.image as string}
+              onChange={(e) => updateProp('image', e.target.value)}
+            />
+          </PropField>
+          <PropField label="Button Text">
+            <Input
+              value={props.buttonText as string}
+              onChange={(e) => updateProp('buttonText', e.target.value)}
+            />
+          </PropField>
+          <PropField label="Badge (Optional)">
+            <Input
+              value={props.badge as string || ''}
+              onChange={(e) => updateProp('badge', e.target.value)}
+            />
+          </PropField>
+          <PropField label="Layout Style">
+            <Select value={props.layout as string || 'card'} onValueChange={(v) => updateProp('layout', v)}>
+              <SelectTrigger><SelectValue /></SelectTrigger>
+              <SelectContent>
+                <SelectItem value="card">Card (Vertical)</SelectItem>
+                <SelectItem value="list">List (Horizontal)</SelectItem>
+                <SelectItem value="minimal">Minimal (No Image)</SelectItem>
+              </SelectContent>
+            </Select>
+          </PropField>
+        </>
+      );
+
+    case 'icon-list':
+      return (
+        <div className="space-y-4">
+          <div className="flex items-center justify-between">
+            <Label className="text-xs font-bold uppercase tracking-wider text-muted-foreground">List Items</Label>
+            <Button size="sm" variant="outline" onClick={() => addArrayItem('items', { icon: '✓', text: 'New Item' })}>
+              Add
+            </Button>
+          </div>
+          {(props.items as any[] || []).map((item, i) => (
+            <div key={i} className="flex gap-2 items-center p-2 border border-border rounded bg-muted/30">
+              <Input className="w-12 h-8 px-1 text-center" value={item.icon} onChange={(e) => updateArrayProp('items', i, 'icon', e.target.value)} />
+              <Input className="h-8" value={item.text} onChange={(e) => updateArrayProp('items', i, 'text', e.target.value)} />
+              <Button size="icon" variant="ghost" className="h-8 w-8 text-destructive" onClick={() => removeArrayItem('items', i)}>
+                <Trash2 className="h-4 w-4" />
+              </Button>
+            </div>
+          ))}
+          <PropField label="Layout">
+            <Select value={props.layout as string} onValueChange={(v) => updateProp('layout', v)}>
+              <SelectTrigger><SelectValue /></SelectTrigger>
+              <SelectContent>
+                <SelectItem value="vertical">Vertical</SelectItem>
+                <SelectItem value="horizontal">Horizontal</SelectItem>
+              </SelectContent>
+            </Select>
+          </PropField>
+        </div>
+      );
+
+    case 'stats':
+      return (
+        <div className="space-y-4">
+          <div className="flex items-center justify-between">
+            <Label className="text-xs font-bold uppercase tracking-wider text-muted-foreground">Stats</Label>
+            <Button size="sm" variant="outline" onClick={() => addArrayItem('items', { value: '0', label: 'Label' })}>
+              Add
+            </Button>
+          </div>
+          {(props.items as any[] || []).map((item, i) => (
+            <div key={i} className="space-y-2 p-2 border border-border rounded bg-muted/30">
+              <Input className="h-8 font-bold" value={item.value} onChange={(e) => updateArrayProp('items', i, 'value', e.target.value)} placeholder="Value" />
+              <Input className="h-8" value={item.label} onChange={(e) => updateArrayProp('items', i, 'label', e.target.value)} placeholder="Label" />
+              <Button size="sm" variant="ghost" className="w-full h-7 text-destructive" onClick={() => removeArrayItem('items', i)}>Remove</Button>
+            </div>
+          ))}
+          <PropField label="Layout">
+            <Select value={props.layout as string} onValueChange={(v) => updateProp('layout', v)}>
+              <SelectTrigger><SelectValue /></SelectTrigger>
+              <SelectContent>
+                <SelectItem value="row">Row</SelectItem>
+                <SelectItem value="grid">Grid</SelectItem>
+              </SelectContent>
+            </Select>
+          </PropField>
+        </div>
+      );
+
+    case 'feature-grid':
+      return (
+        <div className="space-y-4">
+          <div className="flex items-center justify-between">
+            <Label className="text-xs font-bold uppercase tracking-wider text-muted-foreground">Features</Label>
+            <Button size="sm" variant="outline" onClick={() => addArrayItem('items', { icon: '⚡', title: 'Feature', description: 'Desc' })}>
+              Add
+            </Button>
+          </div>
+          {(props.items as any[] || []).map((item, i) => (
+            <div key={i} className="space-y-2 p-2 border border-border rounded bg-muted/30">
+              <div className="flex gap-2">
+                <Input className="w-10 h-8 px-1 text-center" value={item.icon} onChange={(e) => updateArrayProp('items', i, 'icon', e.target.value)} />
+                <Input className="h-8 flex-1 font-bold" value={item.title} onChange={(e) => updateArrayProp('items', i, 'title', e.target.value)} placeholder="Title" />
+              </div>
+              <Textarea className="text-xs" value={item.description} onChange={(e) => updateArrayProp('items', i, 'description', e.target.value)} rows={2} />
+              <Button size="sm" variant="ghost" className="w-full h-7 text-destructive" onClick={() => removeArrayItem('items', i)}>Remove</Button>
+            </div>
+          ))}
+          <PropField label="Columns">
+            <Select value={props.columns?.toString()} onValueChange={(v) => updateProp('columns', parseInt(v))}>
+              <SelectTrigger><SelectValue /></SelectTrigger>
+              <SelectContent>
+                <SelectItem value="2">2 Columns</SelectItem>
+                <SelectItem value="3">3 Columns</SelectItem>
+                <SelectItem value="4">4 Columns</SelectItem>
+              </SelectContent>
+            </Select>
+          </PropField>
+        </div>
+      );
+
+    case 'countdown':
+      return (
+        <>
+          <PropField label="Target Date (ISO)">
+            <Input value={props.targetDate as string} onChange={(e) => updateProp('targetDate', e.target.value)} placeholder="2026-12-31T23:59:59Z" />
+          </PropField>
+          <PropField label="Title">
+            <Input value={props.title as string} onChange={(e) => updateProp('title', e.target.value)} />
+          </PropField>
+          <PropField label="Style">
+            <Select value={props.style as string} onValueChange={(v) => updateProp('style', v)}>
+              <SelectTrigger><SelectValue /></SelectTrigger>
+              <SelectContent>
+                <SelectItem value="simple">Simple</SelectItem>
+                <SelectItem value="flip">Flip Card</SelectItem>
+                <SelectItem value="circular">Circular</SelectItem>
+              </SelectContent>
+            </Select>
+          </PropField>
+        </>
+      );
+
+    case 'contact-form':
+      return (
+        <div className="space-y-4">
+          <PropField label="Form Title">
+            <Input value={props.title as string} onChange={(e) => updateProp('title', e.target.value)} />
+          </PropField>
+          <PropField label="Submit Button Text">
+            <Input value={props.submitText as string} onChange={(e) => updateProp('submitText', e.target.value)} />
+          </PropField>
+          <Separator />
+          <Label className="text-xs font-bold">Fields</Label>
+          {(props.fields as any[] || []).map((field, i) => (
+            <div key={i} className="space-y-2 p-2 border border-border rounded bg-muted/30">
+              <Input className="h-8" value={field.name} onChange={(e) => updateArrayProp('fields', i, 'name', e.target.value)} placeholder="Field Name" />
+              <div className="flex items-center justify-between">
+                <Select value={field.type} onValueChange={(v) => updateArrayProp('fields', i, 'type', v)}>
+                  <SelectTrigger className="h-7 w-32 text-xs"><SelectValue /></SelectTrigger>
+                  <SelectContent>
+                    <SelectItem value="text">Text</SelectItem>
+                    <SelectItem value="email">Email</SelectItem>
+                    <SelectItem value="textarea">Message</SelectItem>
+                  </SelectContent>
+                </Select>
+                <div className="flex items-center gap-1">
+                  <Switch className="scale-75" checked={field.required} onCheckedChange={(v) => updateArrayProp('fields', i, 'required', v)} />
+                  <span className="text-[10px]">Req</span>
+                </div>
+              </div>
+            </div>
+          ))}
+        </div>
+      );
+
     case 'hero':
       return (
         <>
@@ -746,71 +956,6 @@ function renderPropsEditor(
               <Label className="text-xs">Muted</Label>
             </div>
           </div>
-        </>
-      );
-
-    case 'product-item':
-      return (
-        <>
-          <PropField label="Title">
-            <Input
-              value={props.title as string}
-              onChange={(e) => updateProp('title', e.target.value)}
-            />
-          </PropField>
-          <PropField label="Product Number">
-            <Input
-              value={props.productNo as string}
-              onChange={(e) => updateProp('productNo', e.target.value)}
-            />
-          </PropField>
-          <PropField label="Product URL">
-            <Input
-              value={props.productUrl as string}
-              onChange={(e) => updateProp('productUrl', e.target.value)}
-            />
-          </PropField>
-          <PropField label="Price">
-            <Input
-              value={props.price as string}
-              onChange={(e) => updateProp('price', e.target.value)}
-            />
-          </PropField>
-          <PropField label="Description">
-            <Textarea
-              value={props.description as string}
-              onChange={(e) => updateProp('description', e.target.value)}
-              rows={2}
-            />
-          </PropField>
-          <PropField label="Image URL">
-            <Input
-              value={props.image as string}
-              onChange={(e) => updateProp('image', e.target.value)}
-            />
-          </PropField>
-          <PropField label="Button Text">
-            <Input
-              value={props.buttonText as string}
-              onChange={(e) => updateProp('buttonText', e.target.value)}
-            />
-          </PropField>
-          <PropField label="Badge (Optional)">
-            <Input
-              value={props.badge as string || ''}
-              onChange={(e) => updateProp('badge', e.target.value)}
-            />
-          </PropField>
-          <PropField label="Layout Style">
-            <Select value={props.layout as string || 'card'} onValueChange={(v) => updateProp('layout', v)}>
-              <SelectTrigger><SelectValue /></SelectTrigger>
-              <SelectContent>
-                <SelectItem value="card">Card (Vertical)</SelectItem>
-                <SelectItem value="list">List (Horizontal)</SelectItem>
-                <SelectItem value="minimal">Minimal (No Image)</SelectItem>
-              </SelectContent>
-            </Select>
-          </PropField>
         </>
       );
 

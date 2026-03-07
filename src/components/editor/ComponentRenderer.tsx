@@ -88,6 +88,8 @@ export function ComponentRenderer({
 
 function renderComponent(component: PageComponent) {
   switch (component.type) {
+    case 'product-item':
+      return <ProductItemRenderer {...component.props} />;
     case 'hero':
       return <HeroRenderer {...component.props} />;
     case 'heading':
@@ -128,8 +130,6 @@ function renderComponent(component: PageComponent) {
       return <ContactFormRenderer {...component.props} />;
     case 'video':
       return <VideoRenderer {...component.props} />;
-    case 'product-item':
-      return <ProductItemRenderer {...component.props} />;
     default:
       return <div className="p-4 text-muted-foreground">Unknown component</div>;
   }
@@ -856,7 +856,7 @@ function ProductItemRenderer(props: {
 
   // Default Card Layout (Enhanced Lynk-style)
   return (
-    <Card className="overflow-hidden rounded-3xl border border-border bg-card transition-all hover:shadow-xl hover:-translate-y-1 group/product flex flex-col h-full">
+    <Card className="overflow-hidden rounded-2xl border border-border bg-card transition-all hover:shadow-xl hover:-translate-y-1 group/product flex flex-col h-full shadow-sm">
       <div className="relative aspect-square overflow-hidden">
         {props.image ? (
           <img
@@ -865,36 +865,39 @@ function ProductItemRenderer(props: {
             className="w-full h-full object-cover transition-transform duration-700 group-hover/product:scale-110"
           />
         ) : (
-          <div className="w-full h-full bg-muted flex items-center justify-center text-muted-foreground">
-            No Image
+          <div className="w-full h-full bg-muted/30 flex items-center justify-center text-muted-foreground">
+            <span className="text-xs font-medium">No Product Image</span>
           </div>
         )}
         {props.badge && (
-          <div className="absolute top-4 left-4 bg-white/90 backdrop-blur-md text-black text-[10px] font-bold px-3 py-1 rounded-full uppercase tracking-wider shadow-sm border border-white/20">
+          <div className="absolute top-3 left-3 bg-primary text-primary-foreground text-[9px] font-black px-2.5 py-1 rounded-full uppercase tracking-widest shadow-lg">
             {props.badge}
           </div>
         )}
       </div>
 
-      <div className="p-5 flex flex-col flex-1">
-        <div className="flex-1 space-y-2 mb-4">
-          <h3 className="font-bold text-lg leading-tight line-clamp-2 text-foreground group-hover/product:text-primary transition-colors">
+      <div className="p-4 flex flex-col flex-1 bg-gradient-to-b from-transparent to-muted/5">
+        <div className="flex-1 space-y-1.5 mb-4">
+          <div className="text-[10px] font-bold text-primary/60 uppercase tracking-tighter">
+            PROD #{props.productNo || '001'}
+          </div>
+          <h3 className="font-extrabold text-base leading-tight line-clamp-2 text-foreground group-hover/product:text-primary transition-colors tracking-tight">
             {props.title}
           </h3>
 
           {props.description && (
-            <p className="text-sm text-muted-foreground line-clamp-2 leading-relaxed">
+            <p className="text-xs text-muted-foreground line-clamp-2 leading-relaxed font-medium">
               {props.description}
             </p>
           )}
         </div>
 
-        <div className="flex items-center justify-between gap-4">
-          <div className="text-xl font-black text-primary tracking-tighter">
+        <div className="flex items-center justify-between gap-2 pt-2 border-t border-border/50 mt-auto">
+          <div className="text-lg font-black text-primary tracking-tighter">
             {props.price}
           </div>
           <Button
-            className="rounded-full font-bold transition-all active:scale-95 px-6"
+            className="rounded-full font-black transition-all active:scale-90 px-4 h-9 text-xs uppercase tracking-wider"
             asChild
           >
             <a href={props.productUrl} target="_blank" rel="noopener noreferrer">

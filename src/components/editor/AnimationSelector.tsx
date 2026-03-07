@@ -110,3 +110,29 @@ function AnimationButton({ anim, isSelected, onClick }: { anim: any; isSelected:
     </Button>
   );
 }
+
+export function AnimationSpeedControl({ value, onChange }: { value: number; onChange: (v: number) => void }) {
+  return (
+    <div className="space-y-2">
+      <div className="flex items-center justify-between">
+        <Label className="text-xs font-medium">Animation Speed</Label>
+        <span className="text-xs font-mono bg-muted px-1.5 py-0.5 rounded">{value}s</span>
+      </div>
+      <div className="pt-2">
+        <input
+          type="range"
+          min="0.1"
+          max="3"
+          step="0.1"
+          value={value}
+          onChange={(e) => onChange(parseFloat(e.target.value))}
+          className="w-full h-1.5 bg-muted rounded-lg appearance-none cursor-pointer accent-primary"
+        />
+        <div className="flex justify-between mt-1">
+          <span className="text-[10px] text-muted-foreground">Fast</span>
+          <span className="text-[10px] text-muted-foreground">Slow</span>
+        </div>
+      </div>
+    </div>
+  );
+}
