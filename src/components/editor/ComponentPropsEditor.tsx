@@ -1,7 +1,7 @@
 // Component Props Editor - Edit individual component properties
 import { useState } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
-import { X, Trash2, Eye, EyeOff, Copy, Settings2, Sliders } from 'lucide-react';
+import { X, Trash2, Eye, EyeOff, Copy, Settings2, Sliders, Play } from 'lucide-react';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
 import { Textarea } from '@/components/ui/textarea';
@@ -13,6 +13,7 @@ import { ScrollArea } from '@/components/ui/scroll-area';
 import { Separator } from '@/components/ui/separator';
 import { PageComponent } from '@/types/page-components';
 import { cn } from '@/lib/utils';
+import { AnimationSelector } from './AnimationSelector';
 
 function PropField({ label, children }: { label: string; children: React.ReactNode }) {
   return (
@@ -39,7 +40,7 @@ export function ComponentPropsEditor({
   onClose,
   deviceMode = 'desktop',
 }: ComponentPropsEditorProps & { deviceMode?: 'desktop' | 'tablet' | 'mobile' }) {
-  const [activeTab, setActiveTab] = useState<'content' | 'advanced'>('content');
+  const [activeTab, setActiveTab] = useState<'content' | 'animations' | 'advanced'>('content');
 
   const updateProp = (key: string, value: unknown) => {
     onUpdate({
@@ -128,6 +129,16 @@ export function ComponentPropsEditor({
           Content
         </button>
         <button
+          onClick={() => setActiveTab('animations')}
+          className={cn(
+            "flex-1 flex items-center justify-center gap-2 py-3 text-sm font-medium transition-colors",
+            activeTab === 'animations' ? "border-b-2 border-primary text-primary" : "text-muted-foreground hover:bg-accent"
+          )}
+        >
+          <Play className="h-4 w-4" />
+          Animations
+        </button>
+        <button
           onClick={() => setActiveTab('advanced')}
           className={cn(
             "flex-1 flex items-center justify-center gap-2 py-3 text-sm font-medium transition-colors",
@@ -152,6 +163,20 @@ export function ComponentPropsEditor({
             >
               {activeTab === 'content' ? (
                 renderPropsEditor(component, updateProp, updateArrayProp, addArrayItem, removeArrayItem)
+              ) : activeTab === 'animations' ? (
+                <div className="space-y-6">
+                  <div className="space-y-4">
+                    <h4 className="text-xs font-semibold uppercase tracking-wider text-muted-foreground">Component Animations</h4>
+                    <AnimationSelector
+                      value={component.animations || []}
+                      onChange={(animations) => onUpdate({ ...component, animations })}
+                      maxSelections={4}
+                    />
+                    <p className="text-[10px] text-muted-foreground italic">
+                      Tip: Entrance animations play when the component comes into view. Hover animations play when you mouse over.
+                    </p>
+                  </div>
+                </div>
               ) : (
                 <div className="space-y-6">
                   <div className="space-y-4">

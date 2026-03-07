@@ -1,6 +1,7 @@
 // Page Component Renderer - Renders individual components
 import { motion } from 'framer-motion';
 import { cn } from '@/lib/utils';
+import { ANIMATION_PRESET_LIST } from './AnimationSelector';
 import { PageComponent } from '@/types/page-components';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardHeader, CardTitle, CardDescription } from '@/components/ui/card';
@@ -48,14 +49,33 @@ export function ComponentRenderer({
     opacity: props.opacity !== undefined ? props.opacity / 100 : undefined,
   };
 
+  // Get animation config
+  const componentAnimations = component.animations || [];
+  const entranceAnim = ANIMATION_PRESET_LIST.find(a => componentAnimations.includes(a.id) && a.category === 'entrance');
+  const hoverAnim = ANIMATION_PRESET_LIST.find(a => componentAnimations.includes(a.id) && a.category === 'hover');
+  const loopAnim = ANIMATION_PRESET_LIST.find(a => componentAnimations.includes(a.id) && a.category === 'continuous');
+
+  const animationProps = {
+    initial: entranceAnim?.gsapConfig?.from || { opacity: 1 },
+    whileInView: entranceAnim?.gsapConfig?.to || { opacity: 1 },
+    viewport: { once: true, amount: 0.2 },
+    whileHover: hoverAnim?.id === 'hover-scale' ? { scale: 1.05 } :
+                hoverAnim?.id === 'hover-lift' ? { y: -10 } : undefined,
+    animate: loopAnim?.id === 'pulse' ? { scale: [1, 1.05, 1] } :
+             loopAnim?.id === 'float' ? { y: [0, -10, 0] } : undefined,
+    transition: {
+      duration: entranceAnim?.gsapConfig?.duration || 0.5,
+      ease: "easeOut",
+      ...(loopAnim ? { repeat: Infinity, duration: 2 } : {})
+    }
+  };
+
   return (
     <motion.div 
-      className={wrapperClasses}
+      className={cn(wrapperClasses, loopAnim?.cssClass)}
       style={advancedStyles}
       onClick={onSelect}
-      initial={{ opacity: 0, y: 20 }}
-      animate={{ opacity: 1, y: 0 }}
-      exit={{ opacity: 0, y: -20 }}
+      {...animationProps}
       layout
     >
       {renderComponent(component)}
