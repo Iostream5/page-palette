@@ -49,7 +49,8 @@ import { useHistory } from '@/hooks/useHistory';
 import { PageCanvas } from '@/components/editor/PageCanvas';
 import { ComponentPropsEditor } from '@/components/editor/ComponentPropsEditor';
 import { ExportDialog } from '@/components/editor/ExportDialog';
-import { PageComponent } from '@/types/page-components';
+import { PageComponent, PageComponentType } from '@/types/page-components';
+import { createComponentFromPreset } from '@/lib/component-presets';
 import { cn } from '@/lib/utils';
 import { Separator } from '@/components/ui/separator';
 import { Reorder, AnimatePresence as MotionAnimatePresence } from 'framer-motion';
@@ -173,6 +174,11 @@ export default function Editor() {
     setMobilePanelOpen(false);
     toast.success(`${component.type} added!`);
   }, [pageComponents, handleComponentsChange]);
+
+  const handleDropComponent = useCallback((type: PageComponentType) => {
+    const newComponent = createComponentFromPreset(type, pageComponents.length);
+    handleAddComponent(newComponent);
+  }, [pageComponents.length, handleAddComponent]);
 
   // Update single component
   const handleUpdateComponent = useCallback((updated: PageComponent) => {
@@ -807,6 +813,7 @@ export default function Editor() {
                       onSelectComponent={setSelectedComponentId}
                       selectedComponentId={selectedComponentId}
                       deviceMode={deviceMode}
+                      onDropComponent={handleDropComponent}
                     />
                   </div>
                 </div>

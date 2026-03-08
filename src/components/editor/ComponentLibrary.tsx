@@ -147,14 +147,22 @@ interface ComponentItemProps {
 }
 
 function ComponentItem({ component, isHovered, onHover, onAdd }: ComponentItemProps) {
+  const handleDragStart = (e: React.DragEvent) => {
+    e.dataTransfer.setData('application/x-pagecraft-component-type', component.type);
+    e.dataTransfer.effectAllowed = 'copy';
+  };
+
   return (
     <motion.div
       onMouseEnter={() => onHover(component.type)}
       onMouseLeave={() => onHover(null)}
+      draggable
+      onDragStart={handleDragStart}
       className={cn(
         'group relative flex items-center gap-3 rounded-lg border border-transparent p-3 cursor-pointer transition-all',
         'hover:border-border hover:bg-accent/50',
-        isHovered && 'border-primary/50 bg-primary/5'
+        isHovered && 'border-primary/50 bg-primary/5',
+        'active:cursor-grabbing'
       )}
       whileHover={{ x: 4 }}
       onClick={onAdd}
@@ -236,8 +244,13 @@ export function ComponentLibraryCompact({
             key={comp.type}
             variant="outline"
             size="sm"
-            className="gap-1.5 text-xs"
+            className="gap-1.5 text-xs active:cursor-grabbing"
             onClick={() => handleAddComponent(comp.type)}
+            draggable
+            onDragStart={(e) => {
+              e.dataTransfer.setData('application/x-pagecraft-component-type', comp.type);
+              e.dataTransfer.effectAllowed = 'copy';
+            }}
           >
             <span>{comp.icon}</span>
             {comp.name}

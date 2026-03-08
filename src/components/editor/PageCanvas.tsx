@@ -14,7 +14,7 @@ import {
 } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { cn } from '@/lib/utils';
-import { PageComponent } from '@/types/page-components';
+import { PageComponent, PageComponentType } from '@/types/page-components';
 import { ComponentRenderer } from './ComponentRenderer';
 
 interface PageCanvasProps {
@@ -24,6 +24,7 @@ interface PageCanvasProps {
   selectedComponentId: string | null;
   isEditing?: boolean;
   deviceMode?: 'desktop' | 'tablet' | 'mobile';
+  onDropComponent?: (type: PageComponentType) => void;
 }
 
 export function PageCanvas({
@@ -33,8 +34,10 @@ export function PageCanvas({
   selectedComponentId,
   isEditing = true,
   deviceMode = 'desktop',
+  onDropComponent,
 }: PageCanvasProps) {
   const [draggedId, setDraggedId] = useState<string | null>(null);
+  const [isDragOver, setIsDragOver] = useState(false);
 
   const handleReorder = (reorderedComponents: PageComponent[]) => {
     const updated = reorderedComponents.map((comp, index) => ({
@@ -90,6 +93,35 @@ export function PageCanvas({
     handleReorder(updated);
   };
 
+  const handleDragOver = (e: React.DragEvent) => {
+    if (!isEditing) return;
+    e.preventDefault();
+    e.dataTransfer.dropEffect = 'copy';
+  };
+
+  const handleDragEnter = (e: React.DragEvent) => {
+    if (!isEditing) return;
+    e.preventDefault();
+    setIsDragOver(true);
+  };
+
+  const handleDragLeave = (e: React.DragEvent) => {
+    if (!isEditing) return;
+    e.preventDefault();
+    setIsDragOver(false);
+  };
+
+  const handleDrop = (e: React.DragEvent) => {
+    if (!isEditing) return;
+    e.preventDefault();
+    setIsDragOver(false);
+
+    const type = e.dataTransfer.getData('application/x-pagecraft-component-type') as PageComponentType;
+    if (type && onDropComponent) {
+      onDropComponent(type);
+    }
+  };
+
   // Only render components that are NOT children of another component
   const rootComponents = components.filter(comp =>
     !components.some(c => (c.props as any).children?.includes(comp.id))
@@ -99,7 +131,16 @@ export function PageCanvas({
 
   if (components.length === 0) {
     return (
-      <div className="flex flex-col items-center justify-center h-full min-h-[400px] text-center p-8">
+      <div
+        className={cn(
+          "flex flex-col items-center justify-center h-full min-h-[400px] text-center p-8 transition-all border-2 border-transparent",
+          isDragOver && "border-dashed border-primary bg-primary/5 rounded-lg"
+        )}
+        onDragOver={handleDragOver}
+        onDragEnter={handleDragEnter}
+        onDragLeave={handleDragLeave}
+        onDrop={handleDrop}
+      >
         <div className="w-16 h-16 rounded-full bg-muted flex items-center justify-center mb-4">
           <Plus className="h-8 w-8 text-muted-foreground" />
         </div>
@@ -107,7 +148,7 @@ export function PageCanvas({
           Start Building Your Page
         </h3>
         <p className="text-muted-foreground max-w-sm">
-          Click on components from the library to add them here. 
+          Click or drag components from the library to add them here.
           You can reorder, edit, and customize each component.
         </p>
       </div>
@@ -115,10 +156,17 @@ export function PageCanvas({
   }
 
   return (
-    <div className={cn(
-      "p-4 transition-all duration-300 mx-auto",
-      deviceMode === 'mobile' ? 'max-w-[375px]' : 'max-w-full'
-    )}>
+    <div
+      className={cn(
+        "p-4 transition-all duration-300 mx-auto min-h-[400px] border-2 border-transparent",
+        deviceMode === 'mobile' ? 'max-w-[375px]' : 'max-w-full',
+        isDragOver && "border-dashed border-primary bg-primary/5 rounded-lg"
+      )}
+      onDragOver={handleDragOver}
+      onDragEnter={handleDragEnter}
+      onDragLeave={handleDragLeave}
+      onDrop={handleDrop}
+    >
       <Reorder.Group
         axis="y"
         values={sortedComponents}
