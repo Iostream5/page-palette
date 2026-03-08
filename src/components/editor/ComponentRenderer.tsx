@@ -4,6 +4,7 @@ import { motion } from 'framer-motion';
 import { cn } from '@/lib/utils';
 import { ANIMATION_PRESET_LIST } from './AnimationSelector';
 import { PageComponent } from '@/types/page-components';
+import * as Primitive from './Primitives';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardHeader, CardTitle, CardDescription } from '@/components/ui/card';
 import { Input } from '@/components/ui/input';
@@ -169,11 +170,15 @@ function renderComponent(
     case 'logo-cloud':
       return <LogoCloudRenderer {...component.props} />;
     case 'layout-section':
-      return <SectionRenderer {...component.props} />;
+      return <SectionRenderer {...component.props} allComponents={allComponents} isEditing={isEditing} deviceMode={deviceMode} />;
     case 'layout-container':
-      return <ContainerRenderer {...component.props} />;
+      return <ContainerRenderer {...component.props} allComponents={allComponents} isEditing={isEditing} deviceMode={deviceMode} />;
     case 'layout-stack':
-      return <StackRenderer {...component.props} />;
+      return <StackRenderer {...component.props} allComponents={allComponents} isEditing={isEditing} deviceMode={deviceMode} />;
+    case 'layout-grid':
+      return <LayoutGridRenderer {...component.props} allComponents={allComponents} isEditing={isEditing} deviceMode={deviceMode} />;
+    case 'layout-columns':
+      return <LayoutColumnsRenderer {...component.props} allComponents={allComponents} isEditing={isEditing} deviceMode={deviceMode} />;
     case 'box':
       return <BoxRenderer {...component.props} allComponents={allComponents} isEditing={isEditing} deviceMode={deviceMode} />;
     case 'flex':
@@ -259,17 +264,14 @@ function BoxRenderer(props: any) {
   };
 
   return (
-    <div
-      className="w-full h-full"
-      style={{ gap: getResponsiveProp('gap') }}
-    >
+    <Primitive.Box style={{ gap: getResponsiveProp('gap') }}>
       <RecursiveRenderer
         childrenIds={props.children}
         allComponents={props.allComponents}
         isEditing={props.isEditing}
         deviceMode={props.deviceMode}
       />
-    </div>
+    </Primitive.Box>
   );
 }
 
@@ -279,31 +281,12 @@ function FlexRenderer(props: any) {
     return props[`${baseKey}_${props.deviceMode}`] || props[baseKey];
   };
 
-  const alignMap = {
-    start: 'items-start',
-    center: 'items-center',
-    end: 'items-end',
-    stretch: 'items-stretch',
-  };
-
-  const justifyMap = {
-    start: 'justify-start',
-    center: 'justify-center',
-    end: 'justify-end',
-    between: 'justify-between',
-    around: 'justify-around',
-    evenly: 'justify-evenly',
-  };
-
   return (
-    <div
-      className={cn(
-        "flex w-full h-full",
-        props.direction === 'column' ? 'flex-col' : 'flex-row',
-        alignMap[props.align as keyof typeof alignMap] || 'items-stretch',
-        justifyMap[props.justify as keyof typeof justifyMap] || 'justify-start',
-        props.wrap === 'wrap' ? 'flex-wrap' : props.wrap === 'wrap-reverse' ? 'flex-wrap-reverse' : 'flex-nowrap'
-      )}
+    <Primitive.Flex
+      direction={props.direction}
+      align={props.align}
+      justify={props.justify}
+      wrap={props.wrap}
       style={{ gap: getResponsiveProp('gap') }}
     >
       <RecursiveRenderer
@@ -312,7 +295,7 @@ function FlexRenderer(props: any) {
         isEditing={props.isEditing}
         deviceMode={props.deviceMode}
       />
-    </div>
+    </Primitive.Flex>
   );
 }
 
@@ -323,13 +306,10 @@ function GridRenderer(props: any) {
   };
 
   return (
-    <div
-      className="grid w-full h-full"
-      style={{
-        gridTemplateColumns: props.columns,
-        gridTemplateRows: props.rows,
-        gap: getResponsiveProp('gap'),
-      }}
+    <Primitive.Grid
+      columns={props.columns}
+      rows={props.rows}
+      gap={getResponsiveProp('gap')}
     >
       <RecursiveRenderer
         childrenIds={props.children}
@@ -337,78 +317,60 @@ function GridRenderer(props: any) {
         isEditing={props.isEditing}
         deviceMode={props.deviceMode}
       />
-    </div>
+    </Primitive.Grid>
   );
 }
 
 function PrimitiveTextRenderer(props: any) {
   return (
-    <div
-      style={{
-        color: props.color,
-        fontSize: props.fontSize,
-        fontWeight: props.fontWeight,
-        textAlign: props.textAlign,
-        lineHeight: props.lineHeight,
-      }}
+    <Primitive.Text
+      content={props.content}
+      color={props.color}
+      fontSize={props.fontSize}
+      fontWeight={props.fontWeight}
+      textAlign={props.textAlign}
+      lineHeight={props.lineHeight}
     >
-      {props.content}
       <RecursiveRenderer
         childrenIds={props.children}
         allComponents={props.allComponents}
         isEditing={props.isEditing}
         deviceMode={props.deviceMode}
       />
-    </div>
+    </Primitive.Text>
   );
 }
 
 function ImageBasicRenderer(props: any) {
   return (
-    <div className="relative w-full h-full overflow-hidden">
-      <img
-        src={props.src}
-        alt={props.alt || ""}
-        className="w-full h-full"
-        style={{ objectFit: props.objectFit || 'cover' }}
-      />
-      <div className="absolute inset-0">
-        <RecursiveRenderer
-          childrenIds={props.children}
-          allComponents={props.allComponents}
-          isEditing={props.isEditing}
-          deviceMode={props.deviceMode}
-        />
-      </div>
-    </div>
-  );
-}
-
-function ButtonBasicRenderer(props: any) {
-  const content = (
-    <>
-      {props.text}
+    <Primitive.ImageBasic
+      src={props.src}
+      alt={props.alt}
+      objectFit={props.objectFit}
+    >
       <RecursiveRenderer
         childrenIds={props.children}
         allComponents={props.allComponents}
         isEditing={props.isEditing}
         deviceMode={props.deviceMode}
       />
-    </>
+    </Primitive.ImageBasic>
   );
+}
 
-  if (props.url && !props.isEditing) {
-    return (
-      <a href={props.url} className="inline-block w-full h-full text-center no-underline">
-        {content}
-      </a>
-    );
-  }
-
+function ButtonBasicRenderer(props: any) {
   return (
-    <button className="w-full h-full border-none bg-transparent p-0 m-0 cursor-pointer text-inherit font-inherit">
-      {content}
-    </button>
+    <Primitive.ButtonBasic
+      text={props.text}
+      url={props.isEditing ? undefined : props.url}
+    >
+      <RecursiveRenderer
+        childrenIds={props.children}
+        allComponents={props.allComponents}
+        isEditing={props.isEditing}
+        deviceMode={props.deviceMode}
+      />
+    </Primitive.ButtonBasic>
   );
 }
 
@@ -507,40 +469,42 @@ function HeroRenderer(props: {
 
 // ============= New Renderers =============
 
-function SectionRenderer(props: {
-  backgroundColor?: string;
-  backgroundImage?: string;
-  padding: string;
-  fullWidth: boolean;
-}) {
+function SectionRenderer(props: any) {
+  const getResponsiveProp = (baseKey: string) => {
+    if (props.deviceMode === 'desktop') return props[baseKey];
+    return props[`${baseKey}_${props.deviceMode}`] || props[baseKey];
+  };
+
   return (
-    <section
+    <Primitive.Box
       className={cn(
-        "relative py-12 px-6",
-        props.fullWidth ? "w-full" : "max-w-7xl mx-auto rounded-3xl"
+        "relative",
+        props.fullWidth ? "w-full" : "max-w-7xl mx-auto rounded-3xl overflow-hidden"
       )}
       style={{
         backgroundColor: props.backgroundColor,
         backgroundImage: props.backgroundImage ? `url(${props.backgroundImage})` : undefined,
         backgroundSize: 'cover',
         backgroundPosition: 'center',
-        padding: props.padding
+        padding: getResponsiveProp('padding'),
       }}
     >
-      <div className="flex flex-col gap-4">
-        {/* Children components would be rendered here if supported by the architecture */}
-        <div className="border-2 border-dashed border-muted-foreground/20 rounded-xl p-8 text-center text-muted-foreground text-sm">
-          Section Content Area
-        </div>
-      </div>
-    </section>
+      <RecursiveRenderer
+        childrenIds={props.children}
+        allComponents={props.allComponents}
+        isEditing={props.isEditing}
+        deviceMode={props.deviceMode}
+      />
+    </Primitive.Box>
   );
 }
 
-function ContainerRenderer(props: {
-  maxWidth: 'sm' | 'md' | 'lg' | 'xl' | 'full';
-  padding: string;
-}) {
+function ContainerRenderer(props: any) {
+  const getResponsiveProp = (baseKey: string) => {
+    if (props.deviceMode === 'desktop') return props[baseKey];
+    return props[`${baseKey}_${props.deviceMode}`] || props[baseKey];
+  };
+
   const maxWidthClasses = {
     sm: 'max-w-screen-sm',
     md: 'max-w-screen-md',
@@ -550,51 +514,90 @@ function ContainerRenderer(props: {
   };
 
   return (
-    <div
-      className={cn("mx-auto", maxWidthClasses[props.maxWidth])}
-      style={{ padding: props.padding }}
+    <Primitive.Box
+      className={cn("mx-auto", maxWidthClasses[props.maxWidth as keyof typeof maxWidthClasses] || 'max-w-screen-lg')}
+      style={{ padding: getResponsiveProp('padding') }}
     >
-      <div className="border border-dashed border-muted-foreground/10 p-4 rounded-lg">
-        Container Content
-      </div>
-    </div>
+      <RecursiveRenderer
+        childrenIds={props.children}
+        allComponents={props.allComponents}
+        isEditing={props.isEditing}
+        deviceMode={props.deviceMode}
+      />
+    </Primitive.Box>
   );
 }
 
-function StackRenderer(props: {
-  direction: 'vertical' | 'horizontal';
-  gap: string;
-  align: 'start' | 'center' | 'end' | 'stretch';
-  justify: 'start' | 'center' | 'end' | 'between';
-}) {
-  const alignClasses = {
-    start: 'items-start',
-    center: 'items-center',
-    end: 'items-end',
-    stretch: 'items-stretch',
-  };
-
-  const justifyClasses = {
-    start: 'justify-start',
-    center: 'justify-center',
-    end: 'justify-end',
-    between: 'justify-between',
+function StackRenderer(props: any) {
+  const getResponsiveProp = (baseKey: string) => {
+    if (props.deviceMode === 'desktop') return props[baseKey];
+    return props[`${baseKey}_${props.deviceMode}`] || props[baseKey];
   };
 
   return (
-    <div
-      className={cn(
-        "flex",
-        props.direction === 'vertical' ? "flex-col" : "flex-row",
-        alignClasses[props.align],
-        justifyClasses[props.justify]
-      )}
-      style={{ gap: props.gap }}
+    <Primitive.Flex
+      direction={props.direction === 'horizontal' ? 'row' : 'column'}
+      align={props.align}
+      justify={props.justify}
+      style={{
+        gap: getResponsiveProp('gap'),
+        padding: getResponsiveProp('padding')
+      }}
     >
-      <div className="w-12 h-12 bg-primary/20 rounded-md" />
-      <div className="w-12 h-12 bg-primary/40 rounded-md" />
-      <div className="w-12 h-12 bg-primary/60 rounded-md" />
-    </div>
+      <RecursiveRenderer
+        childrenIds={props.children}
+        allComponents={props.allComponents}
+        isEditing={props.isEditing}
+        deviceMode={props.deviceMode}
+      />
+    </Primitive.Flex>
+  );
+}
+
+function LayoutGridRenderer(props: any) {
+  const getResponsiveProp = (baseKey: string) => {
+    if (props.deviceMode === 'desktop') return props[baseKey];
+    return props[`${baseKey}_${props.deviceMode}`] || props[baseKey];
+  };
+
+  return (
+    <Primitive.Grid
+      columns={props.columns}
+      rows={props.rows}
+      gap={getResponsiveProp('gap')}
+      style={{ padding: getResponsiveProp('padding') }}
+    >
+      <RecursiveRenderer
+        childrenIds={props.children}
+        allComponents={props.allComponents}
+        isEditing={props.isEditing}
+        deviceMode={props.deviceMode}
+      />
+    </Primitive.Grid>
+  );
+}
+
+function LayoutColumnsRenderer(props: any) {
+  const getResponsiveProp = (baseKey: string) => {
+    if (props.deviceMode === 'desktop') return props[baseKey];
+    return props[`${baseKey}_${props.deviceMode}`] || props[baseKey];
+  };
+
+  const count = props.count || 2;
+
+  return (
+    <Primitive.Grid
+      columns={`repeat(${count}, minmax(0, 1fr))`}
+      gap={getResponsiveProp('gap')}
+      style={{ padding: getResponsiveProp('padding') }}
+    >
+      <RecursiveRenderer
+        childrenIds={props.children}
+        allComponents={props.allComponents}
+        isEditing={props.isEditing}
+        deviceMode={props.deviceMode}
+      />
+    </Primitive.Grid>
   );
 }
 

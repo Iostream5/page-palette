@@ -1352,13 +1352,11 @@ function renderPropsEditor(
           <PropField label="Background Image URL">
             <Input value={props.backgroundImage as string || ''} onChange={(e) => updateProp('backgroundImage', e.target.value)} />
           </PropField>
-          <PropField label="Padding">
-            <Input value={props.padding as string} onChange={(e) => updateProp('padding', e.target.value)} />
-          </PropField>
           <div className="flex items-center justify-between">
             <Label className="text-xs">Full Width</Label>
             <Switch checked={props.fullWidth as boolean} onCheckedChange={(v) => updateProp('fullWidth', v)} />
           </div>
+          <p className="text-[10px] text-muted-foreground mt-2">Use Advanced tab for detailed spacing.</p>
         </>
       );
 
@@ -1377,9 +1375,7 @@ function renderPropsEditor(
               </SelectContent>
             </Select>
           </PropField>
-          <PropField label="Padding">
-            <Input value={props.padding as string} onChange={(e) => updateProp('padding', e.target.value)} />
-          </PropField>
+          <p className="text-[10px] text-muted-foreground mt-2">Use Advanced tab for detailed spacing.</p>
         </>
       );
 
@@ -1394,9 +1390,6 @@ function renderPropsEditor(
                 <SelectItem value="horizontal">Horizontal</SelectItem>
               </SelectContent>
             </Select>
-          </PropField>
-          <PropField label="Gap">
-            <Input value={props.gap as string} onChange={(e) => updateProp('gap', e.target.value)} placeholder="20px" />
           </PropField>
           <PropField label="Align">
             <Select value={props.align as string} onValueChange={(v) => updateProp('align', v)}>
@@ -1420,6 +1413,37 @@ function renderPropsEditor(
               </SelectContent>
             </Select>
           </PropField>
+          <p className="text-[10px] text-muted-foreground mt-2">Use Advanced tab for gap and padding.</p>
+        </>
+      );
+
+    case 'layout-grid':
+      return (
+        <>
+          <PropField label="Columns (CSS Grid)">
+            <Input value={props.columns as string} onChange={(e) => updateProp('columns', e.target.value)} placeholder="repeat(2, 1fr)" />
+          </PropField>
+          <PropField label="Rows (CSS Grid)">
+            <Input value={props.rows as string} onChange={(e) => updateProp('rows', e.target.value)} placeholder="auto" />
+          </PropField>
+          <p className="text-[10px] text-muted-foreground mt-2">Use Advanced tab for gap and padding.</p>
+        </>
+      );
+
+    case 'layout-columns':
+      return (
+        <>
+          <PropField label="Column Count">
+            <Slider
+              value={[props.count as number || 2]}
+              onValueChange={([v]) => updateProp('count', v)}
+              min={1}
+              max={6}
+              step={1}
+            />
+            <div className="text-center text-xs mt-1">{props.count || 2} Columns</div>
+          </PropField>
+          <p className="text-[10px] text-muted-foreground mt-2">Use Advanced tab for gap and padding.</p>
         </>
       );
 
