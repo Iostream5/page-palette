@@ -14,7 +14,7 @@ import { Button } from '@/components/ui/button';
 import { ScrollArea } from '@/components/ui/scroll-area';
 import { Badge } from '@/components/ui/badge';
 import { cn } from '@/lib/utils';
-import { COMPONENT_CATEGORIES, createComponentFromPreset } from '@/lib/component-presets';
+import { COMPONENT_CATEGORIES, createComponentFromPreset, getPresetByType } from '@/lib/component-presets';
 import { PageComponent, PageComponentType, ComponentPreset } from '@/types/page-components';
 
 interface ComponentLibraryProps {
@@ -27,7 +27,7 @@ export function ComponentLibrary({
   existingComponentCount 
 }: ComponentLibraryProps) {
   const [searchQuery, setSearchQuery] = useState('');
-  const [expandedCategories, setExpandedCategories] = useState<string[]>(['layout', 'content']);
+  const [expandedCategories, setExpandedCategories] = useState<string[]>(['blocks', 'layout']);
   const [hoveredComponent, setHoveredComponent] = useState<string | null>(null);
 
   const toggleCategory = (categoryId: string) => {
@@ -220,12 +220,12 @@ export function ComponentLibraryCompact({
 
   // Get quick access components (most commonly used)
   const quickComponents = [
-    COMPONENT_CATEGORIES[0].components[0], // Hero
-    COMPONENT_CATEGORIES[1].components[0], // Heading
-    COMPONENT_CATEGORIES[1].components[1], // Text
-    COMPONENT_CATEGORIES[2].components[0], // Button
-    COMPONENT_CATEGORIES[3].components[0], // Card
-  ];
+    getPresetByType('hero'),
+    getPresetByType('heading'),
+    getPresetByType('text'),
+    getPresetByType('button'),
+    getPresetByType('card'),
+  ].filter(Boolean) as ComponentPreset[];
 
   return (
     <div className="space-y-3">

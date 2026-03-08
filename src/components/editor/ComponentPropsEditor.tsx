@@ -275,6 +275,14 @@ export function ComponentPropsEditor({
                         onChange={(e) => updateProp('border', e.target.value)}
                       />
                     </PropField>
+                    <PropField label="Radius">
+                      <Input
+                        type="text"
+                        placeholder="e.g. 12px"
+                        value={deviceMode === 'desktop' ? (component.props as any).radius || '' : (component.props as any)[`radius_${deviceMode}`] || (component.props as any).radius || ''}
+                        onChange={(e) => updateProp(deviceMode === 'desktop' ? 'radius' : `radius_${deviceMode}`, e.target.value)}
+                      />
+                    </PropField>
                   </div>
 
                   <Separator />

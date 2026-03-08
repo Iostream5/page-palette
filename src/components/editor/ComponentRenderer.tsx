@@ -68,6 +68,7 @@ export function ComponentRenderer({
     gap: getResponsiveProp('gap'),
     width: getResponsiveProp('width'),
     height: getResponsiveProp('height'),
+    borderRadius: getResponsiveProp('radius'),
     background: props.background,
     border: props.border,
     zIndex: props.zIndex,
@@ -283,8 +284,19 @@ function BoxRenderer(props: any) {
     return props[`${baseKey}_${props.deviceMode}`] || props[baseKey];
   };
 
+  const primitiveStyle = {
+    padding: getResponsiveProp('padding'),
+    margin: getResponsiveProp('margin'),
+    gap: getResponsiveProp('gap'),
+    width: getResponsiveProp('width'),
+    height: getResponsiveProp('height'),
+    background: props.background,
+    border: props.border,
+    borderRadius: getResponsiveProp('radius'),
+  };
+
   return (
-    <Primitive.Box style={{ gap: getResponsiveProp('gap') }}>
+    <Primitive.Box style={primitiveStyle}>
       <RecursiveRenderer
         childrenIds={props.children}
         allComponents={props.allComponents}
@@ -301,13 +313,24 @@ function FlexRenderer(props: any) {
     return props[`${baseKey}_${props.deviceMode}`] || props[baseKey];
   };
 
+  const primitiveStyle = {
+    padding: getResponsiveProp('padding'),
+    margin: getResponsiveProp('margin'),
+    gap: getResponsiveProp('gap'),
+    width: getResponsiveProp('width'),
+    height: getResponsiveProp('height'),
+    background: props.background,
+    border: props.border,
+    borderRadius: getResponsiveProp('radius'),
+  };
+
   return (
     <Primitive.Flex
       direction={props.direction}
       align={props.align}
       justify={props.justify}
       wrap={props.wrap}
-      style={{ gap: getResponsiveProp('gap') }}
+      style={primitiveStyle}
     >
       <RecursiveRenderer
         childrenIds={props.children}
@@ -325,11 +348,23 @@ function GridRenderer(props: any) {
     return props[`${baseKey}_${props.deviceMode}`] || props[baseKey];
   };
 
+  const primitiveStyle = {
+    padding: getResponsiveProp('padding'),
+    margin: getResponsiveProp('margin'),
+    gap: getResponsiveProp('gap'),
+    width: getResponsiveProp('width'),
+    height: getResponsiveProp('height'),
+    background: props.background,
+    border: props.border,
+    borderRadius: getResponsiveProp('radius'),
+  };
+
   return (
     <Primitive.Grid
       columns={props.columns}
       rows={props.rows}
       gap={getResponsiveProp('gap')}
+      style={primitiveStyle}
     >
       <RecursiveRenderer
         childrenIds={props.children}
@@ -342,6 +377,22 @@ function GridRenderer(props: any) {
 }
 
 function PrimitiveTextRenderer(props: any) {
+  const getResponsiveProp = (baseKey: string) => {
+    if (props.deviceMode === 'desktop') return props[baseKey];
+    return props[`${baseKey}_${props.deviceMode}`] || props[baseKey];
+  };
+
+  const primitiveStyle = {
+    padding: getResponsiveProp('padding'),
+    margin: getResponsiveProp('margin'),
+    gap: getResponsiveProp('gap'),
+    width: getResponsiveProp('width'),
+    height: getResponsiveProp('height'),
+    background: props.background,
+    border: props.border,
+    borderRadius: getResponsiveProp('radius'),
+  };
+
   return (
     <Primitive.Text
       content={props.content}
@@ -350,6 +401,7 @@ function PrimitiveTextRenderer(props: any) {
       fontWeight={props.fontWeight}
       textAlign={props.textAlign}
       lineHeight={props.lineHeight}
+      style={primitiveStyle}
     >
       <RecursiveRenderer
         childrenIds={props.children}
@@ -362,11 +414,28 @@ function PrimitiveTextRenderer(props: any) {
 }
 
 function ImageBasicRenderer(props: any) {
+  const getResponsiveProp = (baseKey: string) => {
+    if (props.deviceMode === 'desktop') return props[baseKey];
+    return props[`${baseKey}_${props.deviceMode}`] || props[baseKey];
+  };
+
+  const primitiveStyle = {
+    padding: getResponsiveProp('padding'),
+    margin: getResponsiveProp('margin'),
+    gap: getResponsiveProp('gap'),
+    width: getResponsiveProp('width'),
+    height: getResponsiveProp('height'),
+    background: props.background,
+    border: props.border,
+    borderRadius: getResponsiveProp('radius'),
+  };
+
   return (
     <Primitive.ImageBasic
       src={props.src}
       alt={props.alt}
       objectFit={props.objectFit}
+      style={primitiveStyle}
     >
       <RecursiveRenderer
         childrenIds={props.children}
@@ -379,10 +448,27 @@ function ImageBasicRenderer(props: any) {
 }
 
 function ButtonBasicRenderer(props: any) {
+  const getResponsiveProp = (baseKey: string) => {
+    if (props.deviceMode === 'desktop') return props[baseKey];
+    return props[`${baseKey}_${props.deviceMode}`] || props[baseKey];
+  };
+
+  const primitiveStyle = {
+    padding: getResponsiveProp('padding'),
+    margin: getResponsiveProp('margin'),
+    gap: getResponsiveProp('gap'),
+    width: getResponsiveProp('width'),
+    height: getResponsiveProp('height'),
+    background: props.background,
+    border: props.border,
+    borderRadius: getResponsiveProp('radius'),
+  };
+
   return (
     <Primitive.ButtonBasic
       text={props.text}
       url={props.isEditing ? undefined : props.url}
+      style={primitiveStyle}
     >
       <RecursiveRenderer
         childrenIds={props.children}

@@ -1,5 +1,9 @@
 // Component Library Presets
-import { ComponentCategory, PageComponentType, PageComponent } from '@/types/page-components';
+import {
+  ComponentCategory,
+  PageComponentType,
+  PageComponent,
+} from '@/types/page-components';
 
 // Generate unique ID for components
 export function generateComponentId(): string {
@@ -27,11 +31,23 @@ export function createComponentFromPreset(
 
 // Get all presets flat list
 export function getAllPresets() {
-  return COMPONENT_CATEGORIES.flatMap(cat => cat.components);
+  const byType = new Map<PageComponentType, ComponentCategory['components'][number]>();
+
+  for (const preset of COMPONENT_CATEGORIES.flatMap((cat) => cat.components)) {
+    if (!byType.has(preset.type)) {
+      byType.set(preset.type, preset);
+    }
+  }
+
+  return Array.from(byType.values());
 }
 
-// Component categories with presets
-export const COMPONENT_CATEGORIES: ComponentCategory[] = [
+export function getPresetByType(type: PageComponentType) {
+  return getAllPresets().find((preset) => preset.type === type);
+}
+
+// Legacy component buckets kept as source data for backward compatibility.
+const LEGACY_COMPONENT_CATEGORIES: Omit<ComponentCategory, 'layer'>[] = [
   {
     id: 'primitives',
     name: 'Primitives',
@@ -94,6 +110,7 @@ export const COMPONENT_CATEGORIES: ComponentCategory[] = [
           objectFit: 'cover',
           width: '100%',
           height: '200px',
+          children: [],
         },
       },
       {
@@ -107,6 +124,7 @@ export const COMPONENT_CATEGORIES: ComponentCategory[] = [
           background: 'var(--primary)',
           color: 'white',
           border: 'none',
+          children: [],
         },
       },
     ],
@@ -749,3 +767,100 @@ export const COMPONENT_CATEGORIES: ComponentCategory[] = [
     ],
   },
 ];
+
+type PaletteCategoryId = 'layout' | 'content' | 'ui' | 'forms' | 'blocks';
+
+const PALETTE_CATEGORY_CONFIG: Record<PaletteCategoryId, { name: string; icon: string }> = {
+  layout: { name: 'Layout', icon: 'L' },
+  content: { name: 'Content', icon: 'C' },
+  ui: { name: 'UI', icon: 'U' },
+  forms: { name: 'Forms', icon: 'F' },
+  blocks: { name: 'Blocks', icon: 'B' },
+};
+
+const PALETTE_CATEGORY_ORDER: PaletteCategoryId[] = ['layout', 'content', 'ui', 'forms', 'blocks'];
+
+const PALETTE_CATEGORY_BY_TYPE = {
+  box: 'layout',
+  flex: 'layout',
+  grid: 'layout',
+  divider: 'layout',
+  spacer: 'layout',
+  'layout-section': 'layout',
+  'layout-container': 'layout',
+  'layout-stack': 'layout',
+  'layout-grid': 'layout',
+  'layout-columns': 'layout',
+  text: 'content',
+  heading: 'content',
+  image: 'content',
+  'image-basic': 'content',
+  button: 'content',
+  'button-basic': 'content',
+  'icon-list': 'content',
+  'content-paragraph': 'content',
+  'content-badge': 'content',
+  'content-avatar': 'content',
+  video: 'content',
+  card: 'ui',
+  'ui-tabs': 'ui',
+  'ui-carousel': 'ui',
+  'ui-breadcrumb': 'ui',
+  'ui-accordion': 'ui',
+  'ui-dropdown': 'ui',
+  'ui-modal': 'ui',
+  'ui-tooltip': 'ui',
+  'ui-toast': 'ui',
+  'ui-progress-bar': 'ui',
+  'ui-skeleton-loader': 'ui',
+  'social-links': 'ui',
+  'form-input': 'forms',
+  'form-checkbox': 'forms',
+  'form-switch': 'forms',
+  'form-slider': 'forms',
+  newsletter: 'forms',
+  'contact-form': 'forms',
+  hero: 'blocks',
+  cta: 'blocks',
+  testimonial: 'blocks',
+  stats: 'blocks',
+  'feature-grid': 'blocks',
+  pricing: 'blocks',
+  faq: 'blocks',
+  'process-steps': 'blocks',
+  'logo-cloud': 'blocks',
+  countdown: 'blocks',
+  marquee: 'blocks',
+  'bento-grid': 'blocks',
+  'product-item': 'blocks',
+} as const satisfies Record<PageComponentType, PaletteCategoryId>;
+
+function buildPaletteCategories(): ComponentCategory[] {
+  const grouped = new Map<PaletteCategoryId, ComponentCategory['components']>();
+  const seenTypes = new Set<PageComponentType>();
+
+  for (const category of LEGACY_COMPONENT_CATEGORIES) {
+    for (const component of category.components) {
+      if (seenTypes.has(component.type)) {
+        continue;
+      }
+
+      seenTypes.add(component.type);
+      const paletteCategory = PALETTE_CATEGORY_BY_TYPE[component.type];
+      const current = grouped.get(paletteCategory) || [];
+      current.push(component);
+      grouped.set(paletteCategory, current);
+    }
+  }
+
+  return PALETTE_CATEGORY_ORDER.map((categoryId) => ({
+    id: categoryId,
+    layer: categoryId,
+    name: PALETTE_CATEGORY_CONFIG[categoryId].name,
+    icon: PALETTE_CATEGORY_CONFIG[categoryId].icon,
+    components: grouped.get(categoryId) || [],
+  }));
+}
+
+// Category-first palette consumed by the component library.
+export const COMPONENT_CATEGORIES: ComponentCategory[] = buildPaletteCategories();

@@ -59,6 +59,142 @@ export type PageComponentType =
   | 'form-switch'
   | 'form-slider';
 
+export type ComponentLayer =
+  | 'primitives'
+  | 'layout'
+  | 'content'
+  | 'ui'
+  | 'form'
+  | 'forms'
+  | 'blocks';
+
+export type PrimitiveLayerComponentType = Extract<
+  PageComponentType,
+  | 'box'
+  | 'flex'
+  | 'grid'
+  | 'text'
+  | 'image'
+  | 'image-basic'
+  | 'button'
+  | 'button-basic'
+  | 'divider'
+  | 'spacer'
+  | 'icon-list'
+>;
+
+export type LayoutLayerComponentType = Extract<
+  PageComponentType,
+  | 'layout-section'
+  | 'layout-container'
+  | 'layout-stack'
+  | 'layout-grid'
+  | 'layout-columns'
+>;
+
+export type UILayerComponentType = Extract<
+  PageComponentType,
+  | 'card'
+  | 'content-badge'
+  | 'content-avatar'
+  | 'ui-tabs'
+  | 'ui-carousel'
+  | 'ui-breadcrumb'
+  | 'ui-accordion'
+  | 'ui-dropdown'
+  | 'ui-modal'
+  | 'ui-tooltip'
+  | 'ui-toast'
+  | 'ui-progress-bar'
+  | 'ui-skeleton-loader'
+  | 'social-links'
+>;
+
+export type FormLayerComponentType = Extract<
+  PageComponentType,
+  | 'contact-form'
+  | 'newsletter'
+  | 'form-input'
+  | 'form-checkbox'
+  | 'form-switch'
+  | 'form-slider'
+>;
+
+export type BlockLayerComponentType = Exclude<
+  PageComponentType,
+  | PrimitiveLayerComponentType
+  | LayoutLayerComponentType
+  | UILayerComponentType
+  | FormLayerComponentType
+>;
+
+export interface LayeredComponentTypeMap {
+  primitives: PrimitiveLayerComponentType;
+  layout: LayoutLayerComponentType;
+  ui: UILayerComponentType;
+  form: FormLayerComponentType;
+  blocks: BlockLayerComponentType;
+}
+
+export const COMPONENT_LAYER_BY_TYPE: Record<PageComponentType, ComponentLayer> = {
+  box: 'primitives',
+  flex: 'primitives',
+  grid: 'primitives',
+  text: 'primitives',
+  image: 'primitives',
+  'image-basic': 'primitives',
+  button: 'primitives',
+  'button-basic': 'primitives',
+  divider: 'primitives',
+  spacer: 'primitives',
+  'icon-list': 'primitives',
+  'layout-section': 'layout',
+  'layout-container': 'layout',
+  'layout-stack': 'layout',
+  'layout-grid': 'layout',
+  'layout-columns': 'layout',
+  card: 'ui',
+  'content-badge': 'ui',
+  'content-avatar': 'ui',
+  'ui-tabs': 'ui',
+  'ui-carousel': 'ui',
+  'ui-breadcrumb': 'ui',
+  'ui-accordion': 'ui',
+  'ui-dropdown': 'ui',
+  'ui-modal': 'ui',
+  'ui-tooltip': 'ui',
+  'ui-toast': 'ui',
+  'ui-progress-bar': 'ui',
+  'ui-skeleton-loader': 'ui',
+  'social-links': 'ui',
+  'contact-form': 'form',
+  newsletter: 'form',
+  'form-input': 'form',
+  'form-checkbox': 'form',
+  'form-switch': 'form',
+  'form-slider': 'form',
+  hero: 'blocks',
+  heading: 'blocks',
+  cta: 'blocks',
+  testimonial: 'blocks',
+  stats: 'blocks',
+  'feature-grid': 'blocks',
+  video: 'blocks',
+  countdown: 'blocks',
+  pricing: 'blocks',
+  faq: 'blocks',
+  'product-item': 'blocks',
+  marquee: 'blocks',
+  'bento-grid': 'blocks',
+  'process-steps': 'blocks',
+  'logo-cloud': 'blocks',
+  'content-paragraph': 'blocks',
+};
+
+export function getComponentLayer(type: PageComponentType): ComponentLayer {
+  return COMPONENT_LAYER_BY_TYPE[type];
+}
+
 export interface PageComponentBase {
   id: string;
   type: PageComponentType;
@@ -365,6 +501,7 @@ export interface PrimitiveStyleProps {
   height?: string;
   background?: string;
   border?: string;
+  radius?: string;
   // Responsive overrides
   margin_tablet?: string;
   margin_mobile?: string;
@@ -376,6 +513,8 @@ export interface PrimitiveStyleProps {
   width_mobile?: string;
   height_tablet?: string;
   height_mobile?: string;
+  radius_tablet?: string;
+  radius_mobile?: string;
 }
 
 export interface BoxComponent extends PageComponentBase {
@@ -717,6 +856,7 @@ export interface ComponentCategory {
   id: string;
   name: string;
   icon: string;
+  layer: ComponentLayer;
   components: ComponentPreset[];
 }
 
