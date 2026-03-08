@@ -95,9 +95,9 @@ function componentToHTML(component: PageComponent): string {
 </section>`;
 
     case 'heading':
-      const level = props.level || 'h2';
+      { const level = props.level || 'h2';
       const alignment = props.alignment || 'left';
-      return `<${level} class="heading heading--${alignment}" ${props.color ? `style="color: ${props.color}"` : ''}>${escapeHtml(props.text as string)}</${level}>`;
+      return `<${level} class="heading heading--${alignment}" ${props.color ? `style="color: ${props.color}"` : ''}>${escapeHtml(props.text as string)}</${level}>`; }
 
     case 'text':
       return `<p class="text text--${props.fontSize || 'medium'} text--${props.alignment || 'left'}">${escapeHtml(props.content as string)}</p>`;
@@ -122,13 +122,13 @@ function componentToHTML(component: PageComponent): string {
 </article>`;
 
     case 'spacer':
-      const spacerHeight: Record<string, string> = {
+      { const spacerHeight: Record<string, string> = {
         small: '1rem',
         medium: '2rem',
         large: '4rem',
         xlarge: '6rem',
       };
-      return `<div class="spacer" style="height: ${spacerHeight[props.height as string] || '2rem'}"></div>`;
+      return `<div class="spacer" style="height: ${spacerHeight[props.height as string] || '2rem'}"></div>`; }
 
     case 'divider':
       return `<hr class="divider divider--${props.style || 'solid'} divider--${props.thickness || 'medium'}" />`;
@@ -143,7 +143,7 @@ function componentToHTML(component: PageComponent): string {
 </section>`;
 
     case 'feature-grid':
-      const featureItems = (props.items || []) as Array<{ title: string; description: string; icon: string }>;
+      { const featureItems = (props.items || []) as Array<{ title: string; description: string; icon: string }>;
       return `<section class="features features--${props.columns || 3}-cols">
   <div class="features__grid">
     ${featureItems.map(f => `<div class="feature">
@@ -152,7 +152,7 @@ function componentToHTML(component: PageComponent): string {
       <p class="feature__description">${escapeHtml(f.description)}</p>
     </div>`).join('\n    ')}
   </div>
-</section>`;
+</section>`; }
 
     case 'testimonial':
       return `<blockquote class="testimonial">
@@ -167,7 +167,7 @@ function componentToHTML(component: PageComponent): string {
 </blockquote>`;
 
     case 'stats':
-      const stats = (props.stats || []) as Array<{ value: string; label: string }>;
+      { const stats = (props.stats || []) as Array<{ value: string; label: string }>;
       return `<section class="stats">
   <div class="stats__grid">
     ${stats.map(s => `<div class="stat">
@@ -175,10 +175,10 @@ function componentToHTML(component: PageComponent): string {
       <span class="stat__label">${escapeHtml(s.label)}</span>
     </div>`).join('\n    ')}
   </div>
-</section>`;
+</section>`; }
 
     case 'faq':
-      const faqs = (props.items || []) as Array<{ question: string; answer: string }>;
+      { const faqs = (props.items || []) as Array<{ question: string; answer: string }>;
       return `<section class="faq">
   ${props.title ? `<h2 class="faq__title">${escapeHtml(props.title as string)}</h2>` : ''}
   <div class="faq__list">
@@ -187,10 +187,10 @@ function componentToHTML(component: PageComponent): string {
       <p class="faq__answer">${escapeHtml(f.answer)}</p>
     </details>`).join('\n    ')}
   </div>
-</section>`;
+</section>`; }
 
     case 'pricing':
-      const plans = (props.plans || []) as Array<{
+      { const plans = (props.plans || []) as Array<{
         name: string;
         price: string;
         period: string;
@@ -209,10 +209,10 @@ function componentToHTML(component: PageComponent): string {
       <a href="#" class="btn btn--primary btn--full">Get Started</a>
     </div>`).join('\n    ')}
   </div>
-</section>`;
+</section>`; }
 
     case 'contact-form':
-      const fields = (props.fields || []) as Array<{ label: string; type: string; required?: boolean }>;
+      { const fields = (props.fields || []) as Array<{ label: string; type: string; required?: boolean }>;
       return `<section class="contact-form">
   ${props.title ? `<h2 class="contact-form__title">${escapeHtml(props.title as string)}</h2>` : ''}
   <form class="form">
@@ -224,13 +224,13 @@ function componentToHTML(component: PageComponent): string {
     </div>`).join('\n    ')}
     <button type="submit" class="btn btn--primary">${escapeHtml(props.submitText as string || 'Submit')}</button>
   </form>
-</section>`;
+</section>`; }
 
     case 'social-links':
-      const socialLinks = (props.links || []) as Array<{ platform: string; url: string }>;
+      { const socialLinks = (props.links || []) as Array<{ platform: string; url: string }>;
       return `<div class="social-links social-links--${props.style || 'icons'}">
   ${socialLinks.map(l => `<a href="${escapeHtml(l.url)}" class="social-link social-link--${l.platform}" target="_blank" rel="noopener">${l.platform}</a>`).join('\n  ')}
-</div>`;
+</div>`; }
 
     case 'video':
       return `<div class="video-wrapper" style="aspect-ratio: ${props.aspectRatio || '16/9'}">
@@ -259,13 +259,13 @@ function componentToHTML(component: PageComponent): string {
 </div>`;
 
     case 'icon-list':
-      const iconItems = (props.items || []) as Array<{ icon: string; text: string }>;
+      { const iconItems = (props.items || []) as Array<{ icon: string; text: string }>;
       return `<ul class="icon-list icon-list--${props.layout || 'vertical'}">
   ${iconItems.map(item => `<li class="icon-list__item">
     <span class="icon-list__icon">${item.icon}</span>
     <span class="icon-list__text">${escapeHtml(item.text)}</span>
   </li>`).join('\n  ')}
-</ul>`;
+</ul>`; }
 
     default: {
       // Exhaustive check - this should never happen
