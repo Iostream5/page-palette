@@ -36,6 +36,8 @@ export type PageComponentType =
   | 'layout-section'
   | 'layout-container'
   | 'layout-stack'
+  | 'layout-grid'
+  | 'layout-columns'
   // New Content Components
   | 'content-paragraph'
   | 'content-badge'
@@ -431,30 +433,46 @@ export interface ButtonBasicComponent extends PageComponentBase {
 // Layout Components
 export interface LayoutSectionComponent extends PageComponentBase {
   type: 'layout-section';
-  props: {
+  props: PrimitiveStyleProps & {
     backgroundColor?: string;
     backgroundImage?: string;
-    padding: string;
-    fullWidth: boolean;
-    children?: string[]; // IDs of children components
+    fullWidth?: boolean;
+    children?: string[];
   };
 }
 
 export interface LayoutContainerComponent extends PageComponentBase {
   type: 'layout-container';
-  props: {
-    maxWidth: 'sm' | 'md' | 'lg' | 'xl' | 'full';
-    padding: string;
+  props: PrimitiveStyleProps & {
+    maxWidth?: 'sm' | 'md' | 'lg' | 'xl' | 'full';
+    children?: string[];
   };
 }
 
 export interface LayoutStackComponent extends PageComponentBase {
   type: 'layout-stack';
-  props: {
-    direction: 'vertical' | 'horizontal';
-    gap: string;
-    align: 'start' | 'center' | 'end' | 'stretch';
-    justify: 'start' | 'center' | 'end' | 'between';
+  props: PrimitiveStyleProps & {
+    direction?: 'vertical' | 'horizontal';
+    align?: 'start' | 'center' | 'end' | 'stretch';
+    justify?: 'start' | 'center' | 'end' | 'between';
+    children?: string[];
+  };
+}
+
+export interface LayoutGridComponent extends PageComponentBase {
+  type: 'layout-grid';
+  props: PrimitiveStyleProps & {
+    columns?: string;
+    rows?: string;
+    children?: string[];
+  };
+}
+
+export interface LayoutColumnsComponent extends PageComponentBase {
+  type: 'layout-columns';
+  props: PrimitiveStyleProps & {
+    count?: number;
+    children?: string[];
   };
 }
 
@@ -591,6 +609,8 @@ export type PageComponent =
   | LayoutSectionComponent
   | LayoutContainerComponent
   | LayoutStackComponent
+  | LayoutGridComponent
+  | LayoutColumnsComponent
   | ContentParagraphComponent
   | ContentBadgeComponent
   | ContentAvatarComponent

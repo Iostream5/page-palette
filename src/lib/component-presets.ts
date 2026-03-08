@@ -140,6 +140,7 @@ export const COMPONENT_CATEGORIES: ComponentCategory[] = [
           backgroundColor: '#ffffff',
           padding: '80px 20px',
           fullWidth: true,
+          children: [],
         },
       },
       {
@@ -150,6 +151,7 @@ export const COMPONENT_CATEGORIES: ComponentCategory[] = [
         defaultProps: {
           maxWidth: 'lg',
           padding: '20px',
+          children: [],
         },
       },
       {
@@ -162,6 +164,32 @@ export const COMPONENT_CATEGORIES: ComponentCategory[] = [
           gap: '20px',
           align: 'stretch',
           justify: 'start',
+          padding: '0px',
+          children: [],
+        },
+      },
+      {
+        type: 'layout-grid',
+        name: 'Layout Grid',
+        description: 'CSS Grid container for complex layouts',
+        icon: '▦',
+        defaultProps: {
+          columns: 'repeat(2, minmax(0, 1fr))',
+          gap: '20px',
+          padding: '0px',
+          children: [],
+        },
+      },
+      {
+        type: 'layout-columns',
+        name: 'Columns',
+        description: 'Simple multi-column layout',
+        icon: '◫',
+        defaultProps: {
+          count: 2,
+          gap: '20px',
+          padding: '0px',
+          children: [],
         },
       },
       {
