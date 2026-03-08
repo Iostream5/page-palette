@@ -46,6 +46,13 @@ export type PageComponentType =
   | 'ui-tabs'
   | 'ui-carousel'
   | 'ui-breadcrumb'
+  | 'ui-accordion'
+  | 'ui-dropdown'
+  | 'ui-modal'
+  | 'ui-tooltip'
+  | 'ui-toast'
+  | 'ui-progress-bar'
+  | 'ui-skeleton-loader'
   // New Form Components
   | 'form-input'
   | 'form-checkbox'
@@ -540,6 +547,76 @@ export interface UIBreadcrumbComponent extends PageComponentBase {
   };
 }
 
+export interface UIAccordionComponent extends PageComponentBase {
+  type: 'ui-accordion';
+  props: {
+    items: Array<{
+      title: string;
+      content: string;
+    }>;
+    variant: 'default' | 'bordered' | 'separated';
+  };
+}
+
+export interface UIDropdownComponent extends PageComponentBase {
+  type: 'ui-dropdown';
+  props: {
+    label: string;
+    items: Array<{
+      label: string;
+      url: string;
+    }>;
+    variant: 'default' | 'outline';
+  };
+}
+
+export interface UIModalComponent extends PageComponentBase {
+  type: 'ui-modal';
+  props: {
+    triggerText: string;
+    title: string;
+    description: string;
+    variant: 'default' | 'glass';
+  };
+}
+
+export interface UITooltipComponent extends PageComponentBase {
+  type: 'ui-tooltip';
+  props: {
+    text: string;
+    content: string;
+    variant: 'default' | 'dark';
+  };
+}
+
+export interface UIToastComponent extends PageComponentBase {
+  type: 'ui-toast';
+  props: {
+    title: string;
+    description: string;
+    variant: 'default' | 'success' | 'destructive';
+  };
+}
+
+export interface UIProgressBarComponent extends PageComponentBase {
+  type: 'ui-progress-bar';
+  props: {
+    value: number;
+    max: number;
+    variant: 'default' | 'success' | 'warning';
+    showValue: boolean;
+  };
+}
+
+export interface UISkeletonLoaderComponent extends PageComponentBase {
+  type: 'ui-skeleton-loader';
+  props: {
+    type: 'text' | 'circle' | 'rect';
+    count: number;
+    variant: 'pulse' | 'wave';
+  };
+}
+
 // Form Components
 export interface FormInputComponent extends PageComponentBase {
   type: 'form-input';
@@ -617,6 +694,13 @@ export type PageComponent =
   | UITabsComponent
   | UICarouselComponent
   | UIBreadcrumbComponent
+  | UIAccordionComponent
+  | UIDropdownComponent
+  | UIModalComponent
+  | UITooltipComponent
+  | UIToastComponent
+  | UIProgressBarComponent
+  | UISkeletonLoaderComponent
   | FormInputComponent
   | FormCheckboxComponent
   | FormSwitchComponent

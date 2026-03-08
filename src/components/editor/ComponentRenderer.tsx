@@ -20,6 +20,12 @@ import { Switch } from '@/components/ui/switch';
 import { Slider } from '@/components/ui/slider';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { Label } from '@/components/ui/label';
+import { DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuTrigger } from '@/components/ui/dropdown-menu';
+import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from '@/components/ui/tooltip';
+import { Dialog, DialogContent, DialogDescription, DialogHeader, DialogTitle, DialogTrigger } from '@/components/ui/dialog';
+import { Progress } from '@/components/ui/progress';
+import { Skeleton } from '@/components/ui/skeleton';
+import { Toast, ToastTitle, ToastDescription, ToastProvider, ToastViewport } from '@/components/ui/toast';
 
 interface ComponentRendererProps {
   component: PageComponent;
@@ -201,6 +207,20 @@ function renderComponent(
       return <CarouselRenderer {...component.props} />;
     case 'ui-breadcrumb':
       return <BreadcrumbRenderer {...component.props} />;
+    case 'ui-accordion':
+      return <UIAccordionRenderer {...component.props} />;
+    case 'ui-dropdown':
+      return <UIDropdownRenderer {...component.props} isEditing={isEditing} />;
+    case 'ui-modal':
+      return <UIModalRenderer {...component.props} isEditing={isEditing} />;
+    case 'ui-tooltip':
+      return <UITooltipRenderer {...component.props} />;
+    case 'ui-toast':
+      return <UIToastRenderer {...component.props} />;
+    case 'ui-progress-bar':
+      return <UIProgressBarRenderer {...component.props} />;
+    case 'ui-skeleton-loader':
+      return <UISkeletonLoaderRenderer {...component.props} />;
     case 'form-input':
       return <InputRenderer {...component.props} />;
     case 'form-checkbox':
@@ -1676,5 +1696,209 @@ function LogoCloudRenderer(props: {
         ))}
       </div>
     </div>
+  );
+}
+
+// ============= UI Renderers =============
+
+function UIAccordionRenderer(props: {
+  items: Array<{ title: string; content: string }>;
+  variant: 'default' | 'bordered' | 'separated';
+}) {
+  if (!props.items?.length) return <div className="p-4 text-muted-foreground italic">No accordion items</div>;
+
+  return (
+    <Accordion
+      type="single"
+      collapsible
+      className={cn(
+        "w-full",
+        props.variant === 'separated' && "space-y-4 border-none"
+      )}
+    >
+      {props.items.map((item, i) => (
+        <AccordionItem
+          key={i}
+          value={`item-${i}`}
+          className={cn(
+            props.variant === 'bordered' && "border px-4 rounded-lg mb-2",
+            props.variant === 'separated' && "border rounded-xl px-4 bg-card shadow-sm"
+          )}
+        >
+          <AccordionTrigger className="hover:no-underline font-semibold">{item.title}</AccordionTrigger>
+          <AccordionContent className="text-muted-foreground leading-relaxed">
+            {item.content}
+          </AccordionContent>
+        </AccordionItem>
+      ))}
+    </Accordion>
+  );
+}
+
+function UIDropdownRenderer(props: {
+  label: string;
+  items: Array<{ label: string; url: string }>;
+  variant: 'default' | 'outline';
+  isEditing?: boolean;
+}) {
+  return (
+    <DropdownMenu>
+      <DropdownMenuTrigger asChild>
+        <Button variant={props.variant === 'outline' ? 'outline' : 'default'} className="rounded-full px-6">
+          {props.label || 'Dropdown'} <span className="ml-2 opacity-50">▼</span>
+        </Button>
+      </DropdownMenuTrigger>
+      <DropdownMenuContent className="w-56" align="start">
+        {props.items?.map((item, i) => (
+          <DropdownMenuItem key={i} asChild={!props.isEditing}>
+            {props.isEditing ? (
+              <span>{item.label}</span>
+            ) : (
+              <a href={item.url}>{item.label}</a>
+            )}
+          </DropdownMenuItem>
+        ))}
+      </DropdownMenuContent>
+    </DropdownMenu>
+  );
+}
+
+function UIModalRenderer(props: {
+  triggerText: string;
+  title: string;
+  description: string;
+  variant: 'default' | 'glass';
+  isEditing?: boolean;
+}) {
+  return (
+    <Dialog>
+      <DialogTrigger asChild>
+        <Button variant={props.variant === 'glass' ? 'outline' : 'default'} className={cn(
+          "rounded-xl",
+          props.variant === 'glass' && "bg-white/10 backdrop-blur-md border-white/20 hover:bg-white/20"
+        )}>
+          {props.triggerText || 'Open Modal'}
+        </Button>
+      </DialogTrigger>
+      <DialogContent className={cn(
+        "sm:max-w-[425px] rounded-[2rem]",
+        props.variant === 'glass' && "bg-white/80 backdrop-blur-xl border-white/20"
+      )}>
+        <DialogHeader>
+          <DialogTitle className="text-2xl font-bold tracking-tight">{props.title || 'Modal Title'}</DialogTitle>
+          <DialogDescription className="text-muted-foreground">
+            {props.description || 'Provide a description for your modal here.'}
+          </DialogDescription>
+        </DialogHeader>
+        <div className="py-4">
+          <p className="text-sm text-muted-foreground italic">Modal content area. You can add more components here in a real scenario.</p>
+        </div>
+      </DialogContent>
+    </Dialog>
+  );
+}
+
+function UITooltipRenderer(props: {
+  text: string;
+  content: string;
+  variant: 'default' | 'dark';
+}) {
+  return (
+    <TooltipProvider>
+      <Tooltip>
+        <TooltipTrigger asChild>
+          <span className="inline-block px-2 py-1 bg-muted rounded cursor-help border border-dashed border-muted-foreground/30 text-sm font-medium">
+            {props.text || 'Hover me'}
+          </span>
+        </TooltipTrigger>
+        <TooltipContent className={cn(
+          props.variant === 'dark' && "bg-slate-900 text-slate-50 border-slate-800"
+        )}>
+          <p>{props.content || 'Tooltip content goes here'}</p>
+        </TooltipContent>
+      </Tooltip>
+    </TooltipProvider>
+  );
+}
+
+function UIToastRenderer(props: {
+  title: string;
+  description: string;
+  variant: 'default' | 'success' | 'destructive';
+}) {
+  const variantClasses = {
+    default: "bg-background border-border text-foreground",
+    success: "bg-emerald-50 border-emerald-200 text-emerald-900",
+    destructive: "bg-destructive text-destructive-foreground border-transparent",
+  };
+
+  return (
+    <div className={cn(
+      "max-w-xs w-full p-4 rounded-xl border shadow-lg flex flex-col gap-1 transition-all hover:scale-105",
+      variantClasses[props.variant || 'default']
+    )}>
+      <div className="font-bold text-sm">{props.title || 'Toast Title'}</div>
+      <div className="text-xs opacity-90">{props.description || 'This is how a toast notification looks.'}</div>
+    </div>
+  );
+}
+
+function UIProgressBarRenderer(props: {
+  value: number;
+  max: number;
+  variant: 'default' | 'success' | 'warning';
+  showValue: boolean;
+}) {
+  const value = props.value || 0;
+  const max = props.max || 100;
+  const percentage = Math.min(100, Math.max(0, (value / max) * 100));
+
+  const variantColors = {
+    default: "bg-primary",
+    success: "bg-emerald-500",
+    warning: "bg-amber-500",
+  };
+
+  return (
+    <div className="w-full space-y-2">
+      <div className="flex justify-between items-center text-xs font-medium text-muted-foreground">
+        {props.showValue && <span>Progress</span>}
+        {props.showValue && <span>{Math.round(percentage)}%</span>}
+      </div>
+      <div className="h-3 w-full bg-muted rounded-full overflow-hidden shadow-inner">
+        <motion.div
+          className={cn("h-full rounded-full transition-all", variantColors[props.variant || 'default'])}
+          initial={{ width: 0 }}
+          animate={{ width: `${percentage}%` }}
+          transition={{ duration: 1, ease: "easeOut" }}
+        />
+      </div>
+    </div>
+  );
+}
+
+function UISkeletonLoaderRenderer(props: {
+  type: 'text' | 'circle' | 'rect';
+  count: number;
+  variant: 'pulse' | 'wave';
+}) {
+  const count = props.count || 1;
+  const items = Array.from({ length: count });
+
+  return (
+    <Primitive.Flex direction="column" gap="12px">
+      {items.map((_, i) => (
+        <div key={i} className="flex gap-4 items-center w-full">
+          {props.type === 'circle' && <Skeleton className="h-12 w-12 rounded-full shrink-0" />}
+          <div className="flex-1 space-y-2">
+            <Skeleton className={cn(
+              "h-4 w-full",
+              props.type === 'rect' && "h-24"
+            )} />
+            {props.type === 'circle' && <Skeleton className="h-4 w-[80%]" />}
+          </div>
+        </div>
+      ))}
+    </Primitive.Flex>
   );
 }

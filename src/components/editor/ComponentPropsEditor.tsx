@@ -1639,6 +1639,206 @@ function renderPropsEditor(
         </div>
       );
 
+    case 'ui-accordion':
+      return (
+        <div className="space-y-4">
+          <div className="flex items-center justify-between">
+            <Label className="text-xs font-bold uppercase tracking-wider text-muted-foreground">Items</Label>
+            <Button size="sm" variant="outline" onClick={() => addArrayItem('items', { title: 'New Item', content: 'Description' })}>
+              Add
+            </Button>
+          </div>
+          {(props.items as any[] || []).map((item, i) => (
+            <div key={i} className="space-y-2 p-2 border border-border rounded bg-muted/30 relative group">
+              <Button size="icon" variant="ghost" className="h-6 w-6 absolute top-1 right-1 opacity-0 group-hover:opacity-100" onClick={() => removeArrayItem('items', i)}>
+                <Trash2 className="h-3 w-3" />
+              </Button>
+              <Input className="h-8 font-bold" value={item.title} onChange={(e) => updateArrayProp('items', i, 'title', e.target.value)} placeholder="Title" />
+              <Textarea className="text-xs" value={item.content} onChange={(e) => updateArrayProp('items', i, 'content', e.target.value)} placeholder="Content" rows={2} />
+            </div>
+          ))}
+          <PropField label="Variant">
+            <Select value={props.variant as string} onValueChange={(v) => updateProp('variant', v)}>
+              <SelectTrigger><SelectValue /></SelectTrigger>
+              <SelectContent>
+                <SelectItem value="default">Default</SelectItem>
+                <SelectItem value="bordered">Bordered</SelectItem>
+                <SelectItem value="separated">Separated</SelectItem>
+              </SelectContent>
+            </Select>
+          </PropField>
+        </div>
+      );
+
+    case 'ui-dropdown':
+      return (
+        <div className="space-y-4">
+          <PropField label="Label">
+            <Input value={props.label as string} onChange={(e) => updateProp('label', e.target.value)} />
+          </PropField>
+          <div className="flex items-center justify-between pt-2">
+            <Label className="text-xs font-bold uppercase tracking-wider text-muted-foreground">Menu Items</Label>
+            <Button size="sm" variant="outline" onClick={() => addArrayItem('items', { label: 'New Item', url: '#' })}>
+              Add
+            </Button>
+          </div>
+          {(props.items as any[] || []).map((item, i) => (
+            <div key={i} className="space-y-2 p-2 border border-border rounded bg-muted/30 relative group">
+              <Button size="icon" variant="ghost" className="h-6 w-6 absolute top-1 right-1 opacity-0 group-hover:opacity-100" onClick={() => removeArrayItem('items', i)}>
+                <Trash2 className="h-3 w-3" />
+              </Button>
+              <Input className="h-8" value={item.label} onChange={(e) => updateArrayProp('items', i, 'label', e.target.value)} placeholder="Label" />
+              <Input className="h-8" value={item.url} onChange={(e) => updateArrayProp('items', i, 'url', e.target.value)} placeholder="URL" />
+            </div>
+          ))}
+          <PropField label="Variant">
+            <Select value={props.variant as string} onValueChange={(v) => updateProp('variant', v)}>
+              <SelectTrigger><SelectValue /></SelectTrigger>
+              <SelectContent>
+                <SelectItem value="default">Default</SelectItem>
+                <SelectItem value="outline">Outline</SelectItem>
+              </SelectContent>
+            </Select>
+          </PropField>
+        </div>
+      );
+
+    case 'ui-modal':
+      return (
+        <>
+          <PropField label="Trigger Button Text">
+            <Input value={props.triggerText as string} onChange={(e) => updateProp('triggerText', e.target.value)} />
+          </PropField>
+          <PropField label="Modal Title">
+            <Input value={props.title as string} onChange={(e) => updateProp('title', e.target.value)} />
+          </PropField>
+          <PropField label="Description">
+            <Textarea value={props.description as string} onChange={(e) => updateProp('description', e.target.value)} rows={3} />
+          </PropField>
+          <PropField label="Variant">
+            <Select value={props.variant as string} onValueChange={(v) => updateProp('variant', v)}>
+              <SelectTrigger><SelectValue /></SelectTrigger>
+              <SelectContent>
+                <SelectItem value="default">Default</SelectItem>
+                <SelectItem value="glass">Glass Morphism</SelectItem>
+              </SelectContent>
+            </Select>
+          </PropField>
+        </>
+      );
+
+    case 'ui-tooltip':
+      return (
+        <>
+          <PropField label="Trigger Text">
+            <Input value={props.text as string} onChange={(e) => updateProp('text', e.target.value)} />
+          </PropField>
+          <PropField label="Tooltip Content">
+            <Input value={props.content as string} onChange={(e) => updateProp('content', e.target.value)} />
+          </PropField>
+          <PropField label="Variant">
+            <Select value={props.variant as string} onValueChange={(v) => updateProp('variant', v)}>
+              <SelectTrigger><SelectValue /></SelectTrigger>
+              <SelectContent>
+                <SelectItem value="default">Light</SelectItem>
+                <SelectItem value="dark">Dark</SelectItem>
+              </SelectContent>
+            </Select>
+          </PropField>
+        </>
+      );
+
+    case 'ui-toast':
+      return (
+        <>
+          <PropField label="Toast Title">
+            <Input value={props.title as string} onChange={(e) => updateProp('title', e.target.value)} />
+          </PropField>
+          <PropField label="Description">
+            <Textarea value={props.description as string} onChange={(e) => updateProp('description', e.target.value)} rows={2} />
+          </PropField>
+          <PropField label="Variant">
+            <Select value={props.variant as string} onValueChange={(v) => updateProp('variant', v)}>
+              <SelectTrigger><SelectValue /></SelectTrigger>
+              <SelectContent>
+                <SelectItem value="default">Default</SelectItem>
+                <SelectItem value="success">Success</SelectItem>
+                <SelectItem value="destructive">Destructive</SelectItem>
+              </SelectContent>
+            </Select>
+          </PropField>
+        </>
+      );
+
+    case 'ui-progress-bar':
+      return (
+        <>
+          <PropField label="Progress Value">
+            <div className="flex items-center gap-4">
+              <Slider
+                value={[props.value as number || 0]}
+                onValueChange={([v]) => updateProp('value', v)}
+                max={props.max as number || 100}
+                step={1}
+                className="flex-1"
+              />
+              <Input
+                type="number"
+                className="w-16 h-8 text-xs"
+                value={props.value as number}
+                onChange={(e) => updateProp('value', parseInt(e.target.value))}
+              />
+            </div>
+          </PropField>
+          <PropField label="Max Value">
+            <Input type="number" value={props.max as number} onChange={(e) => updateProp('max', parseInt(e.target.value))} />
+          </PropField>
+          <PropField label="Variant">
+            <Select value={props.variant as string} onValueChange={(v) => updateProp('variant', v)}>
+              <SelectTrigger><SelectValue /></SelectTrigger>
+              <SelectContent>
+                <SelectItem value="default">Primary</SelectItem>
+                <SelectItem value="success">Success</SelectItem>
+                <SelectItem value="warning">Warning</SelectItem>
+              </SelectContent>
+            </Select>
+          </PropField>
+          <div className="flex items-center justify-between pt-2">
+            <Label className="text-xs">Show Value Label</Label>
+            <Switch checked={props.showValue as boolean} onCheckedChange={(v) => updateProp('showValue', v)} />
+          </div>
+        </>
+      );
+
+    case 'ui-skeleton-loader':
+      return (
+        <>
+          <PropField label="Shape Type">
+            <Select value={props.type as string} onValueChange={(v) => updateProp('type', v)}>
+              <SelectTrigger><SelectValue /></SelectTrigger>
+              <SelectContent>
+                <SelectItem value="text">Text Rows</SelectItem>
+                <SelectItem value="circle">Profile Card</SelectItem>
+                <SelectItem value="rect">Rectangle</SelectItem>
+              </SelectContent>
+            </Select>
+          </PropField>
+          <PropField label="Item Count">
+            <Slider value={[props.count as number || 1]} onValueChange={([v]) => updateProp('count', v)} min={1} max={10} step={1} />
+            <div className="text-center text-[10px] mt-1 text-muted-foreground">{props.count} items</div>
+          </PropField>
+          <PropField label="Animation Variant">
+            <Select value={props.variant as string} onValueChange={(v) => updateProp('variant', v)}>
+              <SelectTrigger><SelectValue /></SelectTrigger>
+              <SelectContent>
+                <SelectItem value="pulse">Pulse</SelectItem>
+                <SelectItem value="wave">Wave</SelectItem>
+              </SelectContent>
+            </Select>
+          </PropField>
+        </>
+      );
+
     case 'form-input':
       return (
         <>

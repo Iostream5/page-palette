@@ -390,6 +390,91 @@ export const COMPONENT_CATEGORIES: ComponentCategory[] = [
         },
       },
       {
+        type: 'ui-accordion',
+        name: 'Accordion',
+        description: 'Collapsible content panels',
+        icon: '↕️',
+        defaultProps: {
+          items: [
+            { title: 'Is it responsive?', content: 'Yes, it works perfectly on all devices.' },
+            { title: 'Can I customize styles?', content: 'Absolutely! Use the props editor to change variants.' },
+          ],
+          variant: 'default',
+        },
+      },
+      {
+        type: 'ui-dropdown',
+        name: 'Dropdown Menu',
+        description: 'Toggleable menu for links or actions',
+        icon: '▾',
+        defaultProps: {
+          label: 'Options',
+          items: [
+            { label: 'Profile', url: '#' },
+            { label: 'Settings', url: '#' },
+            { label: 'Logout', url: '#' },
+          ],
+          variant: 'default',
+        },
+      },
+      {
+        type: 'ui-modal',
+        name: 'Modal Dialog',
+        description: 'Popup overlay for focused content',
+        icon: '🪟',
+        defaultProps: {
+          triggerText: 'Open Modal',
+          title: 'Welcome!',
+          description: 'This is a modal dialog powered by primitives.',
+          variant: 'default',
+        },
+      },
+      {
+        type: 'ui-tooltip',
+        name: 'Tooltip',
+        description: 'Brief info on hover',
+        icon: '💬',
+        defaultProps: {
+          text: 'Hover me',
+          content: 'I am a helpful tooltip!',
+          variant: 'default',
+        },
+      },
+      {
+        type: 'ui-toast',
+        name: 'Toast Preview',
+        description: 'Feedback notification preview',
+        icon: '🔔',
+        defaultProps: {
+          title: 'Success!',
+          description: 'Your changes have been saved.',
+          variant: 'success',
+        },
+      },
+      {
+        type: 'ui-progress-bar',
+        name: 'Progress Bar',
+        description: 'Visual indicator of progress',
+        icon: '⏳',
+        defaultProps: {
+          value: 70,
+          max: 100,
+          variant: 'default',
+          showValue: true,
+        },
+      },
+      {
+        type: 'ui-skeleton-loader',
+        name: 'Skeleton Loader',
+        description: 'Placeholder for loading states',
+        icon: '☠️',
+        defaultProps: {
+          type: 'circle',
+          count: 3,
+          variant: 'pulse',
+        },
+      },
+      {
         type: 'cta',
         name: 'Call to Action',
         description: 'Highlight section with action button',
