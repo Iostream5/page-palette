@@ -1,14 +1,15 @@
 import { useState } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { useTemplates, useCreateProject } from '@/hooks/useProjects';
-import { CATEGORIES, Template, TemplateCategory } from '@/types/builder';
+import { Template, TemplateCategory, CATEGORIES } from '@/types/builder';
 import { Button } from '@/components/ui/button';
+import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
-import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import { toast } from 'sonner';
 import { ArrowLeft, ArrowRight, Check, Loader2 } from 'lucide-react';
 import { cn } from '@/lib/utils';
+import { getTemplateById } from '@/templates/registry';
 
 type Step = 'category' | 'template' | 'name';
 
@@ -26,7 +27,26 @@ export default function NewProject() {
   const handleCategorySelect = async (category: TemplateCategory) => {
     setSelectedCategory(category);
     setSelectedTemplate(null);
-    setStep('template');
+
+    if (category === 'custom') {
+      // Find the standard custom template in the local registry
+      const customLocal = getTemplateById('standard-custom');
+      if (customLocal) {
+        setSelectedTemplate({
+          id: customLocal.id,
+          name: customLocal.name,
+          category: 'custom',
+          description: customLocal.description,
+          thumbnail_url: null,
+          schema: { sections: [] },
+          default_data: customLocal.default_data,
+          created_at: new Date().toISOString()
+        });
+      }
+      setStep('name');
+    } else {
+      setStep('template');
+    }
   };
 
   const handleTemplateSelect = (template: Template) => {
@@ -38,51 +58,42 @@ export default function NewProject() {
   const handleCreate = async () => {
     if (!selectedCategory || !projectName.trim()) return;
     
-    // For custom category, we need to fetch the custom template
-    if (selectedCategory === 'custom' && !selectedTemplate) {
-      setCreating(true);
-      try {
-        // Fetch the custom template
-        const { data: customTemplates } = await import('@/integrations/supabase/client').then(m => 
-          m.supabase.from('templates').select('*').eq('category', 'custom').limit(1)
-        );
-        
-        if (!customTemplates || customTemplates.length === 0) {
-          toast.error('Custom template not found');
-          setCreating(false);
-          return;
+    // We should have a selectedTemplate by now, either from selection or auto-selected for custom
+    let templateToUse = selectedTemplate;
+
+    if (!templateToUse && selectedCategory === 'custom') {
+        const customLocal = getTemplateById('standard-custom');
+        if (customLocal) {
+             templateToUse = {
+                id: customLocal.id,
+                name: customLocal.name,
+                category: 'custom',
+                description: customLocal.description,
+                thumbnail_url: null,
+                schema: { sections: [] },
+                default_data: customLocal.default_data,
+                created_at: new Date().toISOString()
+            };
         }
-        
-        const customTemplate = customTemplates[0];
-        const project = await createProject.mutateAsync({
-          templateId: customTemplate.id,
-          category: selectedCategory,
-          name: projectName.trim(),
-          data: customTemplate.default_data || { pageComponents: [] },
-        });
-        toast.success('Project created!');
-        navigate(`/edit/${project.id}`);
-      } catch {
-        toast.error('Failed to create project');
-      } finally {
-        setCreating(false);
-      }
-      return;
     }
 
-    if (!selectedTemplate) return;
+    if (!templateToUse) {
+      toast.error('Please select a template');
+      return;
+    }
 
     setCreating(true);
     try {
       const project = await createProject.mutateAsync({
-        templateId: selectedTemplate.id,
+        templateId: templateToUse.id,
         category: selectedCategory,
         name: projectName.trim(),
-        data: selectedTemplate.default_data,
+        data: templateToUse.default_data,
       });
       toast.success('Project created!');
       navigate(`/edit/${project.id}`);
-    } catch {
+    } catch (error) {
+      console.error('Create error:', error);
       toast.error('Failed to create project');
     } finally {
       setCreating(false);
@@ -94,7 +105,6 @@ export default function NewProject() {
       setStep('category');
       setSelectedCategory(null);
     } else if (step === 'name') {
-      // For custom category, go back to category selection
       if (selectedCategory === 'custom') {
         setStep('category');
         setSelectedCategory(null);
@@ -105,7 +115,6 @@ export default function NewProject() {
     }
   };
 
-  // Determine which steps to show based on category
   const getSteps = () => {
     if (selectedCategory === 'custom') {
       return ['category', 'name'];
