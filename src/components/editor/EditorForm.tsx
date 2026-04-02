@@ -11,6 +11,8 @@ import { cn } from '@/lib/utils';
 import { ThemeControls } from './ThemeControls';
 import { BrandKitControls } from './BrandKitControls';
 import { AnimationSelector, AnimationSpeedControl } from './AnimationSelector';
+import { getTemplateDefinition } from '@/templates/registry';
+
 interface EditorFormProps {
   template: Template;
   data: Record<string, unknown>;
@@ -171,110 +173,115 @@ function LinktreeEditor({
 }: LinktreeEditorProps) {
   return (
     <div className="space-y-6">
-      {/* Profile Section */}
-      <Card>
-        <CardHeader className="pb-3">
-          <CardTitle className="text-sm">Profile</CardTitle>
-        </CardHeader>
-        <CardContent className="space-y-4">
-          <div className="space-y-2">
-            <Label>Avatar URL</Label>
-            <Input
-              value={data.profile?.avatar || ''}
-              onChange={(e) => updateImageField('profile.avatar', e.target.value)}
-              placeholder="https://example.com/avatar.jpg"
-            />
-            {imageErrors['profile.avatar'] && (
-              <p className="text-xs text-destructive flex items-center gap-1">
-                <AlertCircle className="h-3 w-3" />
-                {imageErrors['profile.avatar']}
-              </p>
-            )}
-          </div>
-          <div className="space-y-2">
-            <Label>Name</Label>
-            <Input
-              value={data.profile?.name || ''}
-              onChange={(e) => updateField('profile.name', e.target.value)}
-              placeholder="Your name"
-              maxLength={50}
-            />
-          </div>
-          <div className="space-y-2">
-            <Label>Bio</Label>
-            <Textarea
-              value={data.profile?.bio || ''}
-              onChange={(e) => updateField('profile.bio', e.target.value)}
-              placeholder="A short bio about you"
-              maxLength={150}
-              rows={2}
-            />
-          </div>
-        </CardContent>
-      </Card>
-
-      {/* Links Section */}
-      <Card>
-        <CardHeader className="pb-3">
-          <CardTitle className="text-sm">Links</CardTitle>
-        </CardHeader>
-        <CardContent className="space-y-3">
-          {(data.links || []).map((link, index) => (
-            <div
-              key={index}
-              className="flex items-start gap-2 rounded-lg border border-border p-3"
-            >
-              <div className="flex-1 space-y-2">
-                <Input
-                  value={link.title}
-                  onChange={(e) => updateArrayItem('links', index, 'title', e.target.value)}
-                  placeholder="Link title"
-                  maxLength={50}
-                />
-                <Input
-                  value={link.url}
-                  onChange={(e) => updateArrayItem('links', index, 'url', e.target.value)}
-                  placeholder="https://..."
-                />
-              </div>
-              <Button
-                variant="ghost"
-                size="icon"
-                onClick={() => removeArrayItem('links', index)}
-                className="text-destructive hover:text-destructive"
-              >
-                <Trash2 className="h-4 w-4" />
-              </Button>
-            </div>
-          ))}
-          <Button
-            variant="outline"
-            size="sm"
-            onClick={() => addArrayItem('links', { title: '', url: '' })}
-            className="w-full"
-          >
-            <Plus className="mr-2 h-4 w-4" />
-            Add Link
-          </Button>
-        </CardContent>
-      </Card>
-
-      {/* Customization Tabs */}
-      <Tabs defaultValue="theme" className="w-full">
-        <TabsList className="w-full grid grid-cols-3">
+      <Tabs defaultValue="content" className="w-full">
+        <TabsList className="grid w-full grid-cols-4 h-9">
+          <TabsTrigger value="content" className="text-xs gap-1">
+            <Wand2 className="h-3 w-3" />
+            Content
+          </TabsTrigger>
           <TabsTrigger value="theme" className="text-xs gap-1">
             <Palette className="h-3 w-3" />
             Theme
           </TabsTrigger>
           <TabsTrigger value="animations" className="text-xs gap-1">
             <Wand2 className="h-3 w-3" />
-            Animate
+            FX
           </TabsTrigger>
           <TabsTrigger value="brand" className="text-xs gap-1">
             <Settings2 className="h-3 w-3" />
             Brand
           </TabsTrigger>
         </TabsList>
+        <TabsContent value="content" className="mt-4 space-y-6">
+          <Card>
+            <CardHeader className="pb-3">
+              <CardTitle className="text-sm">Profile</CardTitle>
+            </CardHeader>
+            <CardContent className="space-y-4">
+              <div className="space-y-2">
+                <Label>Name</Label>
+                <Input
+                  value={data.profile?.name || ''}
+                  onChange={(e) => updateField('profile.name', e.target.value)}
+                  placeholder="Your Name"
+                  maxLength={50}
+                />
+              </div>
+              <div className="space-y-2">
+                <Label>Bio</Label>
+                <Textarea
+                  value={data.profile?.bio || ''}
+                  onChange={(e) => updateField('profile.bio', e.target.value)}
+                  placeholder="Tell us about yourself"
+                  maxLength={160}
+                  rows={2}
+                />
+              </div>
+              <div className="space-y-2">
+                <Label>Avatar URL</Label>
+                <div className="flex gap-2">
+                  <Input
+                    value={data.profile?.avatar || ''}
+                    onChange={(e) => updateImageField('profile.avatar', e.target.value)}
+                    placeholder="https://example.com/avatar.jpg"
+                    className={imageErrors['profile.avatar'] ? 'border-destructive' : ''}
+                  />
+                </div>
+                {imageErrors['profile.avatar'] && (
+                  <p className="text-xs text-destructive flex items-center gap-1">
+                    <AlertCircle className="h-3 w-3" />
+                    {imageErrors['profile.avatar']}
+                  </p>
+                )}
+              </div>
+            </CardContent>
+          </Card>
+
+          <Card>
+            <CardHeader className="pb-3">
+              <CardTitle className="text-sm">Links</CardTitle>
+            </CardHeader>
+            <CardContent className="space-y-3">
+              {(data.links || []).map((link, index) => (
+                <div
+                  key={index}
+                  className="flex items-start gap-2 rounded-lg border border-border p-3"
+                >
+                  <div className="flex-1 space-y-2">
+                    <Input
+                      value={link.title}
+                      onChange={(e) => updateArrayItem('links', index, 'title', e.target.value)}
+                      placeholder="Link Title"
+                      maxLength={40}
+                    />
+                    <Input
+                      value={link.url}
+                      onChange={(e) => updateArrayItem('links', index, 'url', e.target.value)}
+                      placeholder="https://example.com"
+                    />
+                  </div>
+                  <Button
+                    variant="ghost"
+                    size="icon"
+                    onClick={() => removeArrayItem('links', index)}
+                    className="text-destructive hover:text-destructive"
+                  >
+                    <Trash2 className="h-4 w-4" />
+                  </Button>
+                </div>
+              ))}
+              <Button
+                variant="outline"
+                size="sm"
+                onClick={() => addArrayItem('links', { title: '', url: '' })}
+                className="w-full"
+              >
+                <Plus className="mr-2 h-4 w-4" />
+                Add Link
+              </Button>
+            </CardContent>
+          </Card>
+        </TabsContent>
         <TabsContent value="theme" className="mt-4">
           <ThemeControls
             theme={data.theme || {}}
@@ -568,4 +575,8 @@ function LetterEditor({ data, updateField }: LetterEditorProps) {
   }
 
   return null;
+}
+
+function getNestedValue(obj: any, path: string) {
+  return path.split('.').reduce((acc, part) => acc && acc[part], obj);
 }

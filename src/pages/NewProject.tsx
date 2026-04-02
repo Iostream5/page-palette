@@ -9,6 +9,7 @@ import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/com
 import { toast } from 'sonner';
 import { ArrowLeft, ArrowRight, Check, Loader2 } from 'lucide-react';
 import { cn } from '@/lib/utils';
+import { getTemplateDefinition } from '@/templates/registry';
 
 type Step = 'category' | 'template' | 'name';
 
@@ -74,11 +75,15 @@ export default function NewProject() {
 
     setCreating(true);
     try {
+      // Use code-based default data if available
+      const templateDef = getTemplateDefinition(selectedTemplate.id);
+      const defaultData = templateDef ? templateDef.defaultData : selectedTemplate.default_data;
+
       const project = await createProject.mutateAsync({
         templateId: selectedTemplate.id,
         category: selectedCategory,
         name: projectName.trim(),
-        data: selectedTemplate.default_data,
+        data: defaultData,
       });
       toast.success('Project created!');
       navigate(`/edit/${project.id}`);
