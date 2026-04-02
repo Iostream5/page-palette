@@ -1,30 +1,26 @@
 import { TemplateCategory, TemplateSchema } from '@/types/builder';
 import { ComponentType } from 'react';
 
-export type TemplateComponentProps = {
-  data: Record<string, unknown>;
-};
-
-export type TemplateEditorProps = {
-  data: Record<string, unknown>;
+export interface EditorProps {
+  data: any;
   onChange: (data: Record<string, unknown>) => void;
-};
+  updateField: (path: string, value: string) => void;
+  updateArrayItem: (arrayPath: string, index: number, field: string, value: string) => void;
+  addArrayItem: (arrayPath: string, defaultItem: Record<string, any>) => void;
+  removeArrayItem: (arrayPath: string, index: number) => void;
+}
 
 export interface LocalTemplate {
   id: string;
-  legacyIds?: string[];
+  slug: string;
   name: string;
   category: TemplateCategory;
   description: string;
   thumbnail_url?: string;
-  component: ComponentType<TemplateComponentProps>;
-  default_data: Record<string, unknown>;
-  schema?: TemplateSchema; // Optional, can be derived from code or defined here
-  editor?: ComponentType<TemplateEditorProps>;
+  component: ComponentType<any>;
+  editor: ComponentType<EditorProps>;
+  default_data: Record<string, any>;
+  schema?: TemplateSchema;
 }
 
 export type TemplateRegistry = Record<string, LocalTemplate>;
-
-export function createTemplateDefinition(template: LocalTemplate): LocalTemplate {
-  return template;
-}
