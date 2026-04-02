@@ -3,6 +3,7 @@ import { supabase } from '@/integrations/supabase/client';
 import { Project, Template, TemplateCategory, ProjectStatus, TemplateSchema } from '@/types/builder';
 import { useAuth } from './useAuth';
 import type { Json } from '@/integrations/supabase/types';
+import { getAllTemplates, getTemplateById, getTemplatesByCategory } from '@/templates/registry';
 
 interface DatabaseProject {
   id: string;
@@ -29,11 +30,16 @@ interface DatabaseTemplate {
 }
 
 function mapTemplate(t: DatabaseTemplate): Template {
+  // If we have a local version of this template in our registry, use its metadata
+  const localTemplate = getTemplateById(t.id);
+
   return {
     ...t,
     category: t.category as TemplateCategory,
     schema: t.schema as TemplateSchema,
     default_data: t.default_data as Record<string, unknown>,
+    name: localTemplate?.name || t.name,
+    description: localTemplate?.description || t.description,
   };
 }
 
@@ -51,13 +57,39 @@ export function useTemplates(category?: TemplateCategory) {
   return useQuery({
     queryKey: ['templates', category],
     queryFn: async () => {
+      // Prioritize local registry templates
+      const localTemplates = category ? getTemplatesByCategory(category) : getAllTemplates();
+
+      // Still fetch from Supabase to maintain sync and potentially dynamic templates
       let query = supabase.from('templates').select('*');
       if (category) {
         query = query.eq('category', category);
       }
       const { data, error } = await query;
       if (error) throw error;
-      return (data as DatabaseTemplate[]).map(mapTemplate);
+
+      const remoteTemplates = (data as DatabaseTemplate[]).map(mapTemplate);
+
+      // Merge: local templates that aren't in Supabase (newly added in code)
+      // and remote templates (synced with local metadata via mapTemplate)
+      const merged = [...remoteTemplates];
+
+      localTemplates.forEach(local => {
+        if (!merged.find(m => m.id === local.id)) {
+          merged.push({
+            id: local.id,
+            name: local.name,
+            category: local.category,
+            description: local.description,
+            thumbnail_url: local.thumbnail_url || null,
+            schema: local.schema || { sections: [] },
+            default_data: local.default_data,
+            created_at: new Date().toISOString()
+          });
+        }
+      });
+
+      return merged;
     },
   });
 }
@@ -66,13 +98,34 @@ export function useTemplate(id: string) {
   return useQuery({
     queryKey: ['template', id],
     queryFn: async () => {
+      // Check local registry first
+      const local = getTemplateById(id);
+
       const { data, error } = await supabase
         .from('templates')
         .select('*')
         .eq('id', id)
         .single();
+
+      if (!error && data) {
+        return mapTemplate(data as DatabaseTemplate);
+      }
+
+      if (local) {
+        return {
+          id: local.id,
+          name: local.name,
+          category: local.category,
+          description: local.description,
+          thumbnail_url: local.thumbnail_url || null,
+          schema: local.schema || { sections: [] },
+          default_data: local.default_data,
+          created_at: new Date().toISOString()
+        } as Template;
+      }
+
       if (error) throw error;
-      return mapTemplate(data as DatabaseTemplate);
+      return null as any;
     },
     enabled: !!id,
   });
