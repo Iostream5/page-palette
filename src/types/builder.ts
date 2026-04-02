@@ -73,6 +73,7 @@ export interface Project {
   status: ProjectStatus;
   created_at: string;
   updated_at: string;
+  // Resolved from the local template registry using template_id.
   template?: Template;
 }
 

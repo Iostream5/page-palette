@@ -1,5 +1,5 @@
-import { useState } from 'react';
-import { Template, LinktreeData, GalleryData, LetterData, BrandKit, AnimationSettings } from '@/types/builder';
+import { useMemo, useState } from 'react';
+import { Template, LinktreeData, GalleryData, LetterData, BrandKit, TemplateField, TemplateSection, TemplateCategory } from '@/types/builder';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
 import { Textarea } from '@/components/ui/textarea';
@@ -7,29 +7,30 @@ import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import { Plus, Trash2, AlertCircle, Palette, Wand2, Settings2 } from 'lucide-react';
-import { cn } from '@/lib/utils';
 import { ThemeControls } from './ThemeControls';
 import { BrandKitControls } from './BrandKitControls';
 import { AnimationSelector, AnimationSpeedControl } from './AnimationSelector';
+import { getTemplateById } from '@/templates/registry';
+
 interface EditorFormProps {
   template: Template;
   data: Record<string, unknown>;
   onChange: (data: Record<string, unknown>) => void;
 }
 
-// Sanitize text input to prevent XSS
-function sanitizeText(text: string): string {
-  return text
-    .replace(/</g, '&lt;')
-    .replace(/>/g, '&gt;')
-    .replace(/"/g, '&quot;')
-    .replace(/'/g, '&#x27;');
+interface TemplateEditorHelpers {
+  imageErrors: Record<string, string>;
+  getNestedValue: (path: string) => unknown;
+  updateField: (path: string, value: unknown) => void;
+  updateImageField: (path: string, value: string) => void;
+  updateArrayItem: (arrayPath: string, index: number, field: string, value: string) => void;
+  addArrayItem: (arrayPath: string, defaultItem: Record<string, string>) => void;
+  removeArrayItem: (arrayPath: string, index: number) => void;
 }
 
-// Validate image URL
 function validateImageUrl(url: string): { valid: boolean; error?: string } {
   if (!url) return { valid: true };
-  
+
   try {
     const parsed = new URL(url);
     if (!['http:', 'https:'].includes(parsed.protocol)) {
@@ -43,14 +44,27 @@ function validateImageUrl(url: string): { valid: boolean; error?: string } {
 
 export function EditorForm({ template, data, onChange }: EditorFormProps) {
   const [imageErrors, setImageErrors] = useState<Record<string, string>>({});
+  const localTemplate = useMemo(() => getTemplateById(template.id), [template.id]);
 
-  const updateField = (path: string, value: string) => {
+  if (localTemplate?.editor) {
+    const CustomEditor = localTemplate.editor;
+    return <CustomEditor data={data} onChange={onChange} />;
+  }
+
+  const getNestedValue = (path: string): unknown => {
+    return path.split('.').reduce((current, key) => {
+      return (current as Record<string, unknown>)?.[key];
+    }, data as unknown);
+  };
+
+  const updateField = (path: string, value: unknown) => {
     const keys = path.split('.');
     const newData = { ...data };
     let current: Record<string, unknown> = newData;
 
     for (let i = 0; i < keys.length - 1; i++) {
-      if (!current[keys[i]]) {
+      const next = current[keys[i]];
+      if (!next || typeof next !== 'object' || Array.isArray(next)) {
         current[keys[i]] = {};
       }
       current = current[keys[i]] as Record<string, unknown>;
@@ -63,7 +77,7 @@ export function EditorForm({ template, data, onChange }: EditorFormProps) {
   const updateImageField = (path: string, value: string) => {
     const validation = validateImageUrl(value);
     if (!validation.valid) {
-      setImageErrors((prev) => ({ ...prev, [path]: validation.error! }));
+      setImageErrors((prev) => ({ ...prev, [path]: validation.error || 'Invalid image URL' }));
     } else {
       setImageErrors((prev) => {
         const next = { ...prev };
@@ -80,492 +94,534 @@ export function EditorForm({ template, data, onChange }: EditorFormProps) {
     field: string,
     value: string
   ) => {
-    const arr = (getNestedValue(data, arrayPath) as unknown[]) || [];
+    const arr = (getNestedValue(arrayPath) as unknown[]) || [];
     const newArr = [...arr];
     if (!newArr[index]) newArr[index] = {};
     (newArr[index] as Record<string, unknown>)[field] = value;
-    updateField(arrayPath, newArr as unknown as string);
+    updateField(arrayPath, newArr);
   };
 
   const addArrayItem = (arrayPath: string, defaultItem: Record<string, string>) => {
-    const arr = (getNestedValue(data, arrayPath) as unknown[]) || [];
-    updateField(arrayPath, [...arr, defaultItem] as unknown as string);
+    const arr = (getNestedValue(arrayPath) as unknown[]) || [];
+    updateField(arrayPath, [...arr, defaultItem]);
   };
 
   const removeArrayItem = (arrayPath: string, index: number) => {
-    const arr = (getNestedValue(data, arrayPath) as unknown[]) || [];
+    const arr = (getNestedValue(arrayPath) as unknown[]) || [];
     updateField(
       arrayPath,
-      arr.filter((_, i) => i !== index) as unknown as string
+      arr.filter((_, i) => i !== index)
     );
   };
 
-  const getNestedValue = (obj: Record<string, unknown>, path: string): unknown => {
-    return path.split('.').reduce((current, key) => {
-      return (current as Record<string, unknown>)?.[key];
-    }, obj as unknown);
+  const helpers: TemplateEditorHelpers = {
+    imageErrors,
+    getNestedValue,
+    updateField,
+    updateImageField,
+    updateArrayItem,
+    addArrayItem,
+    removeArrayItem,
   };
 
-  // Render based on template category
-  if (template.category === 'linktree') {
+  if (localTemplate?.schema?.sections?.length) {
     return (
-      <LinktreeEditor
-        data={data as unknown as LinktreeData}
-        onChange={onChange}
-        imageErrors={imageErrors}
-        updateField={updateField}
-        updateImageField={updateImageField}
-        updateArrayItem={updateArrayItem}
-        addArrayItem={addArrayItem}
-        removeArrayItem={removeArrayItem}
+      <TemplateSchemaEditor
+        template={template}
+        data={data}
+        sections={localTemplate.schema.sections}
+        helpers={helpers}
       />
     );
+  }
+
+  if (template.category === 'linktree') {
+    return <LinktreeEditor data={data as LinktreeData} helpers={helpers} />;
   }
 
   if (template.category === 'gallery') {
-    return (
-      <GalleryEditor
-        data={data as unknown as GalleryData}
-        onChange={onChange}
-        imageErrors={imageErrors}
-        updateField={updateField}
-        updateImageField={updateImageField}
-        updateArrayItem={updateArrayItem}
-        addArrayItem={addArrayItem}
-        removeArrayItem={removeArrayItem}
-      />
-    );
+    return <GalleryEditor data={data as GalleryData} helpers={helpers} />;
   }
 
   if (template.category === 'letter') {
-    return (
-      <LetterEditor
-        data={data as unknown as LetterData}
-        updateField={updateField}
-      />
-    );
+    return <LetterEditor data={data as LetterData} helpers={helpers} />;
   }
 
   return null;
 }
 
-interface LinktreeEditorProps {
-  data: LinktreeData;
-  onChange: (data: Record<string, unknown>) => void;
-  imageErrors: Record<string, string>;
-  updateField: (path: string, value: string) => void;
-  updateImageField: (path: string, value: string) => void;
-  updateArrayItem: (arrayPath: string, index: number, field: string, value: string) => void;
-  addArrayItem: (arrayPath: string, defaultItem: Record<string, string>) => void;
-  removeArrayItem: (arrayPath: string, index: number) => void;
+interface TemplateSchemaEditorProps {
+  template: Template;
+  data: Record<string, unknown>;
+  sections: TemplateSection[];
+  helpers: TemplateEditorHelpers;
 }
 
-function LinktreeEditor({
-  data,
-  imageErrors,
-  updateField,
-  updateImageField,
-  updateArrayItem,
-  addArrayItem,
-  removeArrayItem,
-}: LinktreeEditorProps) {
+function TemplateSchemaEditor({ template, data, sections, helpers }: TemplateSchemaEditorProps) {
+  const theme = (data.theme as Record<string, unknown>) || {};
+  const animations = (data.animations as string[]) || [];
+  const brandKit = (data.brandKit as BrandKit) || {};
+  const hasTheme = sections.some((section) => section.type === 'theme');
+  const hasBrandKit = template.category === 'linktree' || template.category === 'custom';
+  const hasAnimations = template.category === 'linktree';
+
   return (
     <div className="space-y-6">
-      {/* Profile Section */}
-      <Card>
-        <CardHeader className="pb-3">
-          <CardTitle className="text-sm">Profile</CardTitle>
-        </CardHeader>
-        <CardContent className="space-y-4">
-          <div className="space-y-2">
-            <Label>Avatar URL</Label>
-            <Input
-              value={data.profile?.avatar || ''}
-              onChange={(e) => updateImageField('profile.avatar', e.target.value)}
-              placeholder="https://example.com/avatar.jpg"
-            />
-            {imageErrors['profile.avatar'] && (
-              <p className="text-xs text-destructive flex items-center gap-1">
-                <AlertCircle className="h-3 w-3" />
-                {imageErrors['profile.avatar']}
-              </p>
-            )}
-          </div>
-          <div className="space-y-2">
-            <Label>Name</Label>
-            <Input
-              value={data.profile?.name || ''}
-              onChange={(e) => updateField('profile.name', e.target.value)}
-              placeholder="Your name"
-              maxLength={50}
-            />
-          </div>
-          <div className="space-y-2">
-            <Label>Bio</Label>
-            <Textarea
-              value={data.profile?.bio || ''}
-              onChange={(e) => updateField('profile.bio', e.target.value)}
-              placeholder="A short bio about you"
-              maxLength={150}
-              rows={2}
-            />
-          </div>
-        </CardContent>
-      </Card>
-
-      {/* Links Section */}
-      <Card>
-        <CardHeader className="pb-3">
-          <CardTitle className="text-sm">Links</CardTitle>
-        </CardHeader>
-        <CardContent className="space-y-3">
-          {(data.links || []).map((link, index) => (
-            <div
-              key={index}
-              className="flex items-start gap-2 rounded-lg border border-border p-3"
-            >
-              <div className="flex-1 space-y-2">
-                <Input
-                  value={link.title}
-                  onChange={(e) => updateArrayItem('links', index, 'title', e.target.value)}
-                  placeholder="Link title"
-                  maxLength={50}
-                />
-                <Input
-                  value={link.url}
-                  onChange={(e) => updateArrayItem('links', index, 'url', e.target.value)}
-                  placeholder="https://..."
-                />
-              </div>
-              <Button
-                variant="ghost"
-                size="icon"
-                onClick={() => removeArrayItem('links', index)}
-                className="text-destructive hover:text-destructive"
-              >
-                <Trash2 className="h-4 w-4" />
-              </Button>
-            </div>
-          ))}
-          <Button
-            variant="outline"
-            size="sm"
-            onClick={() => addArrayItem('links', { title: '', url: '' })}
-            className="w-full"
-          >
-            <Plus className="mr-2 h-4 w-4" />
-            Add Link
-          </Button>
-        </CardContent>
-      </Card>
-
-      {/* Customization Tabs */}
-      <Tabs defaultValue="theme" className="w-full">
-        <TabsList className="w-full grid grid-cols-3">
-          <TabsTrigger value="theme" className="text-xs gap-1">
-            <Palette className="h-3 w-3" />
-            Theme
-          </TabsTrigger>
-          <TabsTrigger value="animations" className="text-xs gap-1">
-            <Wand2 className="h-3 w-3" />
-            Animate
-          </TabsTrigger>
-          <TabsTrigger value="brand" className="text-xs gap-1">
-            <Settings2 className="h-3 w-3" />
-            Brand
-          </TabsTrigger>
-        </TabsList>
-        <TabsContent value="theme" className="mt-4">
-          <ThemeControls
-            theme={data.theme || {}}
-            updateField={updateField}
-            category="linktree"
-          />
-        </TabsContent>
-        <TabsContent value="animations" className="mt-4 space-y-4">
-          <Card>
+      {sections
+        .filter((section) => section.type !== 'theme')
+        .map((section) => (
+          <Card key={section.type}>
             <CardHeader className="pb-3">
-              <CardTitle className="text-sm">Animation Effects</CardTitle>
+              <CardTitle className="text-sm">{formatSectionTitle(section.type)}</CardTitle>
             </CardHeader>
             <CardContent className="space-y-4">
-              <AnimationSelector
-                value={(data as unknown as Record<string, unknown>).animations as string[] || []}
-                onChange={(animations) => updateField('animations', animations as unknown as string)}
-                maxSelections={3}
-              />
-              <AnimationSpeedControl
-                value={data.theme?.animationSpeed || 1}
-                onChange={(speed) => updateField('theme.animationSpeed', speed.toString())}
-              />
+              {section.fields.map((field) => (
+                <TemplateFieldEditor
+                  key={`${section.type}.${field.name}`}
+                  field={field}
+                  basePath={resolveFieldBasePath(section, field)}
+                  helpers={helpers}
+                />
+              ))}
             </CardContent>
           </Card>
-        </TabsContent>
-        <TabsContent value="brand" className="mt-4">
-          <Card>
-            <CardHeader className="pb-3">
-              <CardTitle className="text-sm">Brand Kit</CardTitle>
-            </CardHeader>
-            <CardContent>
-              <BrandKitControls
-                brandKit={(data as unknown as Record<string, unknown>).brandKit as BrandKit || {}}
-                onChange={(brandKit) => updateField('brandKit', brandKit as unknown as string)}
+        ))}
+
+      {(hasTheme || hasAnimations || hasBrandKit) && (
+        <Tabs defaultValue={hasTheme ? 'theme' : hasAnimations ? 'animations' : 'brand'} className="w-full">
+          <TabsList className={`w-full grid ${getTabGridClass(hasTheme, hasAnimations, hasBrandKit)}`}>
+            {hasTheme && (
+              <TabsTrigger value="theme" className="text-xs gap-1">
+                <Palette className="h-3 w-3" />
+                Theme
+              </TabsTrigger>
+            )}
+            {hasAnimations && (
+              <TabsTrigger value="animations" className="text-xs gap-1">
+                <Wand2 className="h-3 w-3" />
+                Animate
+              </TabsTrigger>
+            )}
+            {hasBrandKit && (
+              <TabsTrigger value="brand" className="text-xs gap-1">
+                <Settings2 className="h-3 w-3" />
+                Brand
+              </TabsTrigger>
+            )}
+          </TabsList>
+
+          {hasTheme && (
+            <TabsContent value="theme" className="mt-4">
+              <ThemeControls
+                theme={theme}
+                updateField={(path, value) => helpers.updateField(path, value)}
+                category={template.category as Exclude<TemplateCategory, 'custom'>}
               />
-            </CardContent>
-          </Card>
-        </TabsContent>
-      </Tabs>
+            </TabsContent>
+          )}
+
+          {hasAnimations && (
+            <TabsContent value="animations" className="mt-4 space-y-4">
+              <Card>
+                <CardHeader className="pb-3">
+                  <CardTitle className="text-sm">Animation Effects</CardTitle>
+                </CardHeader>
+                <CardContent className="space-y-4">
+                  <AnimationSelector
+                    value={animations}
+                    onChange={(nextAnimations) => helpers.updateField('animations', nextAnimations)}
+                    maxSelections={3}
+                  />
+                  <AnimationSpeedControl
+                    value={typeof theme.animationSpeed === 'number' ? theme.animationSpeed : 1}
+                    onChange={(speed) => helpers.updateField('theme.animationSpeed', speed)}
+                  />
+                </CardContent>
+              </Card>
+            </TabsContent>
+          )}
+
+          {hasBrandKit && (
+            <TabsContent value="brand" className="mt-4">
+              <Card>
+                <CardHeader className="pb-3">
+                  <CardTitle className="text-sm">Brand Kit</CardTitle>
+                </CardHeader>
+                <CardContent>
+                  <BrandKitControls
+                    brandKit={brandKit}
+                    onChange={(nextBrandKit) => helpers.updateField('brandKit', nextBrandKit)}
+                  />
+                </CardContent>
+              </Card>
+            </TabsContent>
+          )}
+        </Tabs>
+      )}
     </div>
   );
 }
 
-interface GalleryEditorProps {
-  data: GalleryData;
-  onChange: (data: Record<string, unknown>) => void;
-  imageErrors: Record<string, string>;
-  updateField: (path: string, value: string) => void;
-  updateImageField: (path: string, value: string) => void;
-  updateArrayItem: (arrayPath: string, index: number, field: string, value: string) => void;
-  addArrayItem: (arrayPath: string, defaultItem: Record<string, string>) => void;
-  removeArrayItem: (arrayPath: string, index: number) => void;
+interface TemplateFieldEditorProps {
+  field: TemplateField;
+  basePath: string;
+  helpers: TemplateEditorHelpers;
 }
 
-function GalleryEditor({
-  data,
-  imageErrors,
-  updateField,
-  updateImageField,
-  updateArrayItem,
-  addArrayItem,
-  removeArrayItem,
-}: GalleryEditorProps) {
-  return (
-    <div className="space-y-6">
-      {/* Header Section */}
-      <Card>
-        <CardHeader className="pb-3">
-          <CardTitle className="text-sm">Header</CardTitle>
-        </CardHeader>
-        <CardContent className="space-y-4">
-          <div className="space-y-2">
-            <Label>Title</Label>
-            <Input
-              value={data.header?.title || ''}
-              onChange={(e) => updateField('header.title', e.target.value)}
-              placeholder="Gallery Title"
-              maxLength={60}
-            />
-          </div>
-          <div className="space-y-2">
-            <Label>Description</Label>
-            <Textarea
-              value={data.header?.description || ''}
-              onChange={(e) => updateField('header.description', e.target.value)}
-              placeholder="A short description"
-              maxLength={150}
-              rows={2}
-            />
-          </div>
-        </CardContent>
-      </Card>
+function TemplateFieldEditor({ field, basePath, helpers }: TemplateFieldEditorProps) {
+  const currentValue = helpers.getNestedValue(basePath);
 
-      {/* Photos Section */}
-      <Card>
-        <CardHeader className="pb-3">
-          <CardTitle className="text-sm">Photos</CardTitle>
-        </CardHeader>
-        <CardContent className="space-y-3">
-          {(data.photos || []).map((photo, index) => (
-            <div
-              key={index}
-              className="flex items-start gap-2 rounded-lg border border-border p-3"
-            >
-              <div className="flex-1 space-y-2">
-                <Input
-                  value={photo.url}
-                  onChange={(e) => updateArrayItem('photos', index, 'url', e.target.value)}
-                  placeholder="https://example.com/image.jpg"
-                />
-                {photo.url && (
-                  <img
-                    src={photo.url}
-                    alt={photo.caption}
-                    className="h-20 w-full rounded object-cover"
-                    onError={(e) => {
-                      (e.target as HTMLImageElement).style.display = 'none';
-                    }}
-                  />
-                )}
-                <Input
-                  value={photo.caption}
-                  onChange={(e) => updateArrayItem('photos', index, 'caption', e.target.value)}
-                  placeholder="Caption"
-                  maxLength={100}
+  if (field.type === 'array') {
+    const items = (currentValue as Record<string, string>[]) || [];
+    const defaultItem = (field.itemFields || []).reduce<Record<string, string>>((acc, itemField) => {
+      acc[itemField.name] = '';
+      return acc;
+    }, {});
+
+    return (
+      <div className="space-y-3">
+        <Label>{field.label}</Label>
+        {items.map((item, index) => (
+          <div key={index} className="rounded-lg border border-border p-3 space-y-2">
+            {(field.itemFields || []).map((itemField) => (
+              <div key={itemField.name} className="space-y-2">
+                <Label className="text-xs text-muted-foreground">{itemField.label}</Label>
+                <FieldInput
+                  field={itemField}
+                  value={item[itemField.name] || ''}
+                  path={`${basePath}.${index}.${itemField.name}`}
+                  helpers={helpers}
+                  onChange={(value) => helpers.updateArrayItem(basePath, index, itemField.name, value)}
                 />
               </div>
-              <Button
-                variant="ghost"
-                size="icon"
-                onClick={() => removeArrayItem('photos', index)}
-                className="text-destructive hover:text-destructive"
-              >
-                <Trash2 className="h-4 w-4" />
-              </Button>
-            </div>
-          ))}
-          <Button
-            variant="outline"
-            size="sm"
-            onClick={() => addArrayItem('photos', { url: '', caption: '' })}
-            className="w-full"
-          >
-            <Plus className="mr-2 h-4 w-4" />
-            Add Photo
-          </Button>
-        </CardContent>
-      </Card>
+            ))}
+            <Button
+              variant="ghost"
+              size="sm"
+              onClick={() => helpers.removeArrayItem(basePath, index)}
+              className="text-destructive hover:text-destructive"
+            >
+              <Trash2 className="mr-2 h-4 w-4" />
+              Remove Item
+            </Button>
+          </div>
+        ))}
+        <Button
+          variant="outline"
+          size="sm"
+          onClick={() => helpers.addArrayItem(basePath, defaultItem)}
+          className="w-full"
+        >
+          <Plus className="mr-2 h-4 w-4" />
+          Add Item
+        </Button>
+      </div>
+    );
+  }
 
-      {/* Theme Controls */}
-      <ThemeControls
-        theme={data.theme || {}}
-        updateField={updateField}
-        category="gallery"
+  return (
+    <div className="space-y-2">
+      <Label>{field.label}</Label>
+      <FieldInput
+        field={field}
+        value={typeof currentValue === 'string' ? currentValue : ''}
+        path={basePath}
+        helpers={helpers}
+        onChange={(value) => {
+          if (field.type === 'image') {
+            helpers.updateImageField(basePath, value);
+            return;
+          }
+          helpers.updateField(basePath, value);
+        }}
       />
+      {helpers.imageErrors[basePath] && (
+        <p className="text-xs text-destructive flex items-center gap-1">
+          <AlertCircle className="h-3 w-3" />
+          {helpers.imageErrors[basePath]}
+        </p>
+      )}
     </div>
   );
 }
 
-interface LetterEditorProps {
-  data: LetterData;
-  updateField: (path: string, value: string) => void;
+interface FieldInputProps {
+  field: TemplateField;
+  value: string;
+  path: string;
+  helpers: TemplateEditorHelpers;
+  onChange: (value: string) => void;
 }
 
-
-function LetterEditor({ data, updateField }: LetterEditorProps) {
-  if (data.letter) {
+function FieldInput({ field, value, path, helpers, onChange }: FieldInputProps) {
+  if (field.type === 'textarea' || field.type === 'richtext') {
     return (
-      <div className="space-y-6">
-        <Card>
-          <CardHeader className="pb-3">
-            <CardTitle className="text-sm">Letter Content</CardTitle>
-          </CardHeader>
-          <CardContent className="space-y-4">
-            <div className="space-y-2">
-              <Label>Title</Label>
-              <Input
-                value={data.letter?.title || ''}
-                onChange={(e) => updateField('letter.title', e.target.value)}
-                placeholder="Letter title"
-                maxLength={100}
-              />
-            </div>
-            <div className="space-y-2">
-              <Label>Date</Label>
-              <Input
-                value={data.letter?.date || ''}
-                onChange={(e) => updateField('letter.date', e.target.value)}
-                placeholder="February 2026"
-              />
-            </div>
-            <div className="space-y-2">
-              <Label>Greeting</Label>
-              <Input
-                value={data.letter?.greeting || ''}
-                onChange={(e) => updateField('letter.greeting', e.target.value)}
-                placeholder="Dear Reader,"
-              />
-            </div>
-            <div className="space-y-2">
-              <Label>Body</Label>
-              <Textarea
-                value={data.letter?.body || ''}
-                onChange={(e) => updateField('letter.body', e.target.value)}
-                placeholder="Write your letter..."
-                rows={8}
-              />
-            </div>
-            <div className="space-y-2">
-              <Label>Closing</Label>
-              <Input
-                value={data.letter?.closing || ''}
-                onChange={(e) => updateField('letter.closing', e.target.value)}
-                placeholder="With warm regards,"
-              />
-            </div>
-            <div className="space-y-2">
-              <Label>Signature</Label>
-              <Input
-                value={data.letter?.signature || ''}
-                onChange={(e) => updateField('letter.signature', e.target.value)}
-                placeholder="Your Name"
-              />
-            </div>
-          </CardContent>
-        </Card>
+      <Textarea
+        value={value}
+        onChange={(e) => onChange(e.target.value)}
+        placeholder={field.label}
+        rows={field.type === 'richtext' ? 6 : 3}
+      />
+    );
+  }
 
-        {/* Theme Controls */}
-        <ThemeControls
-          theme={data.theme || {}}
-          updateField={updateField}
-          category="letter"
+  if (field.type === 'color') {
+    return (
+      <div className="flex gap-2">
+        <Input
+          type="color"
+          value={value || '#000000'}
+          onChange={(e) => onChange(e.target.value)}
+          className="h-10 w-14 p-1"
+        />
+        <Input
+          value={value}
+          onChange={(e) => onChange(e.target.value)}
+          placeholder="#000000"
         />
       </div>
     );
   }
 
-  if (data.document) {
+  if (field.type === 'image') {
     return (
-      <div className="space-y-6">
-        <Card>
-          <CardHeader className="pb-3">
-            <CardTitle className="text-sm">Document Content</CardTitle>
-          </CardHeader>
-          <CardContent className="space-y-4">
-            <div className="space-y-2">
-              <Label>Title</Label>
-              <Input
-                value={data.document?.title || ''}
-                onChange={(e) => updateField('document.title', e.target.value)}
-                placeholder="Document title"
-                maxLength={100}
-              />
-            </div>
-            <div className="space-y-2">
-              <Label>Subtitle</Label>
-              <Input
-                value={data.document?.subtitle || ''}
-                onChange={(e) => updateField('document.subtitle', e.target.value)}
-                placeholder="A brief description"
-              />
-            </div>
-            <div className="space-y-2">
-              <Label>Content</Label>
-              <Textarea
-                value={data.document?.content || ''}
-                onChange={(e) => updateField('document.content', e.target.value)}
-                placeholder="Write your content..."
-                rows={10}
-              />
-            </div>
-            <div className="space-y-2">
-              <Label>Author</Label>
-              <Input
-                value={data.document?.author || ''}
-                onChange={(e) => updateField('document.author', e.target.value)}
-                placeholder="Your Name"
-              />
-            </div>
-          </CardContent>
-        </Card>
-
-        {/* Theme Controls */}
-        <ThemeControls
-          theme={data.theme || {}}
-          updateField={updateField}
-          category="letter"
+      <div className="space-y-2">
+        <Input
+          value={value}
+          onChange={(e) => onChange(e.target.value)}
+          placeholder="https://example.com/image.jpg"
         />
+        {value && !helpers.imageErrors[path] && (
+          <img
+            src={value}
+            alt={field.label}
+            className="h-20 w-full rounded object-cover"
+            onError={(e) => {
+              (e.target as HTMLImageElement).style.display = 'none';
+            }}
+          />
+        )}
       </div>
     );
   }
 
-  return null;
+  return (
+    <Input
+      type={field.type === 'url' ? 'url' : 'text'}
+      value={value}
+      onChange={(e) => onChange(e.target.value)}
+      placeholder={field.label}
+    />
+  );
+}
+
+function resolveFieldBasePath(section: TemplateSection, field: TemplateField) {
+  if (section.type === 'theme') {
+    return `theme.${field.name}`;
+  }
+
+  if (field.type === 'array') {
+    return field.name;
+  }
+
+  return `${section.type}.${field.name}`;
+}
+
+function formatSectionTitle(sectionType: string) {
+  return sectionType
+    .split(/[-_]/g)
+    .map((part) => part.charAt(0).toUpperCase() + part.slice(1))
+    .join(' ');
+}
+
+function getTabGridClass(hasTheme: boolean, hasAnimations: boolean, hasBrandKit: boolean) {
+  const count = [hasTheme, hasAnimations, hasBrandKit].filter(Boolean).length;
+  if (count === 1) return 'grid-cols-1';
+  if (count === 2) return 'grid-cols-2';
+  return 'grid-cols-3';
+}
+
+interface CategoryEditorProps<T> {
+  data: T;
+  helpers: TemplateEditorHelpers;
+}
+
+function LinktreeEditor({ data, helpers }: CategoryEditorProps<LinktreeData>) {
+  return (
+    <TemplateSchemaEditor
+      template={{
+        id: 'fallback-linktree',
+        name: 'Linktree',
+        category: 'linktree',
+        description: null,
+        thumbnail_url: null,
+        schema: {
+          sections: [
+            {
+              type: 'profile',
+              fields: [
+                { name: 'avatar', type: 'image', label: 'Avatar URL' },
+                { name: 'name', type: 'text', label: 'Name' },
+                { name: 'bio', type: 'textarea', label: 'Bio' },
+              ],
+            },
+            {
+              type: 'links',
+              fields: [
+                {
+                  name: 'links',
+                  type: 'array',
+                  label: 'Links',
+                  itemFields: [
+                    { name: 'title', type: 'text', label: 'Title' },
+                    { name: 'url', type: 'url', label: 'URL' },
+                  ],
+                },
+              ],
+            },
+          ],
+        },
+        default_data: data as Record<string, unknown>,
+        created_at: '',
+      }}
+      data={data as unknown as Record<string, unknown>}
+      sections={[
+        {
+          type: 'profile',
+          fields: [
+            { name: 'avatar', type: 'image', label: 'Avatar URL' },
+            { name: 'name', type: 'text', label: 'Name' },
+            { name: 'bio', type: 'textarea', label: 'Bio' },
+          ],
+        },
+        {
+          type: 'links',
+          fields: [
+            {
+              name: 'links',
+              type: 'array',
+              label: 'Links',
+              itemFields: [
+                { name: 'title', type: 'text', label: 'Title' },
+                { name: 'url', type: 'url', label: 'URL' },
+              ],
+            },
+          ],
+        },
+      ]}
+      helpers={helpers}
+    />
+  );
+}
+
+function GalleryEditor({ data, helpers }: CategoryEditorProps<GalleryData>) {
+  return (
+    <TemplateSchemaEditor
+      template={{
+        id: 'fallback-gallery',
+        name: 'Gallery',
+        category: 'gallery',
+        description: null,
+        thumbnail_url: null,
+        schema: {
+          sections: [
+            {
+              type: 'header',
+              fields: [
+                { name: 'title', type: 'text', label: 'Title' },
+                { name: 'description', type: 'textarea', label: 'Description' },
+              ],
+            },
+            {
+              type: 'photos',
+              fields: [
+                {
+                  name: 'photos',
+                  type: 'array',
+                  label: 'Photos',
+                  itemFields: [
+                    { name: 'url', type: 'image', label: 'Image URL' },
+                    { name: 'caption', type: 'text', label: 'Caption' },
+                  ],
+                },
+              ],
+            },
+          ],
+        },
+        default_data: data as Record<string, unknown>,
+        created_at: '',
+      }}
+      data={data as unknown as Record<string, unknown>}
+      sections={[
+        {
+          type: 'header',
+          fields: [
+            { name: 'title', type: 'text', label: 'Title' },
+            { name: 'description', type: 'textarea', label: 'Description' },
+          ],
+        },
+        {
+          type: 'photos',
+          fields: [
+            {
+              name: 'photos',
+              type: 'array',
+              label: 'Photos',
+              itemFields: [
+                { name: 'url', type: 'image', label: 'Image URL' },
+                { name: 'caption', type: 'text', label: 'Caption' },
+              ],
+            },
+          ],
+        },
+      ]}
+      helpers={helpers}
+    />
+  );
+}
+
+function LetterEditor({ data, helpers }: CategoryEditorProps<LetterData>) {
+  const sections: TemplateSection[] = data.letter
+    ? [
+        {
+          type: 'letter',
+          fields: [
+            { name: 'title', type: 'text', label: 'Title' },
+            { name: 'date', type: 'text', label: 'Date' },
+            { name: 'greeting', type: 'text', label: 'Greeting' },
+            { name: 'body', type: 'textarea', label: 'Body' },
+            { name: 'closing', type: 'text', label: 'Closing' },
+            { name: 'signature', type: 'text', label: 'Signature' },
+          ],
+        },
+      ]
+    : [
+        {
+          type: 'document',
+          fields: [
+            { name: 'title', type: 'text', label: 'Title' },
+            { name: 'subtitle', type: 'text', label: 'Subtitle' },
+            { name: 'content', type: 'textarea', label: 'Content' },
+            { name: 'author', type: 'text', label: 'Author' },
+          ],
+        },
+      ];
+
+  return (
+    <TemplateSchemaEditor
+      template={{
+        id: 'fallback-letter',
+        name: 'Letter',
+        category: 'letter',
+        description: null,
+        thumbnail_url: null,
+        schema: { sections },
+        default_data: data as Record<string, unknown>,
+        created_at: '',
+      }}
+      data={data as unknown as Record<string, unknown>}
+      sections={sections}
+      helpers={helpers}
+    />
+  );
 }
