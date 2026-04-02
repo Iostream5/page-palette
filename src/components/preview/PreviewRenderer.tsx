@@ -1,9 +1,7 @@
-import { Template, LinktreeData, GalleryData, LetterData, BrandKit } from '@/types/builder';
-import { LinktreePreview } from './LinktreePreview';
-import { GalleryPreview } from './GalleryPreview';
-import { LetterPreview } from './LetterPreview';
+import { Template, BrandKit } from '@/types/builder';
 import { PageComponent } from '@/types/page-components';
 import { ComponentRenderer } from '@/components/editor/ComponentRenderer';
+import { getTemplateDefinition } from '@/templates/registry';
 
 interface PreviewRendererProps {
   template: Template;
@@ -57,16 +55,11 @@ export function PreviewRenderer({ template, data }: PreviewRendererProps) {
     );
   }
 
-  if (template.category === 'linktree') {
-     return <LinktreePreview data={data as unknown as LinktreeData} templateName={template.name} />;
-  }
-
-  if (template.category === 'gallery') {
-     return <GalleryPreview data={data as unknown as GalleryData} templateName={template.name} />;
-  }
-
-  if (template.category === 'letter') {
-     return <LetterPreview data={data as unknown as LetterData} templateName={template.name} />;
+  // Use code-based template definition if available
+  const templateDef = getTemplateDefinition(template.id);
+  if (templateDef) {
+    const TemplateComponent = templateDef.component;
+    return <TemplateComponent data={data} templateName={template.name} />;
   }
 
   return null;
